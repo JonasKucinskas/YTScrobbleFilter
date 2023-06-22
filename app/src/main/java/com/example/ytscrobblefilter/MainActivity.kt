@@ -136,6 +136,7 @@ class MainActivity : AppCompatActivity() {
         if (apiAvailability.isUserResolvableError(connectionStatusCode)) {
             showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
         }
+
     }
 
     private fun showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode: Int) {
