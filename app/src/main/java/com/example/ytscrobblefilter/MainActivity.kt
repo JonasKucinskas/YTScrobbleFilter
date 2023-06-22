@@ -19,7 +19,6 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
@@ -32,22 +31,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.lang.IllegalArgumentException
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var mCredential: GoogleAccountCredential
-    private val RC_SIGN_IN = 123
     private var mService: YouTube? = null
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private val RESULT_OK = 0
-
-    val REQUEST_ACCOUNT_PICKER = 1000
-    val REQUEST_AUTHORIZATION = 1001
-    val REQUEST_GOOGLE_PLAY_SERVICES = 1002
-    val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
+    private val REQUEST_GOOGLE_PLAY_SERVICES = 1002
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
         if (mCredential.selectedAccountName == null) {
             signIn()
+
         }
     }
 
@@ -71,7 +64,7 @@ class MainActivity : AppCompatActivity() {
         val button = findViewById<Button>(R.id.button)
         val text = findViewById<TextView>(R.id.text)
 
-        button.setOnClickListener(){
+        button.setOnClickListener{
             //TODO sometimes this bugs, idk why, will fix later.
             scope.launch {
 
@@ -177,7 +170,7 @@ class MainActivity : AppCompatActivity() {
         if (channels != null) {
             val channel: Channel = channels[0]
             channelInfo.add(
-                "This channel's ID is " + channel.getId() + ". " +
+                "This channel's ID is " + channel.id + ". " +
                         "Its title is '" + channel.snippet.title + ", " +
                         "and it has " + channel.statistics.viewCount + " views."
             )
