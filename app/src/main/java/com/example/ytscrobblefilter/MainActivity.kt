@@ -28,9 +28,14 @@ import com.google.api.services.youtube.model.Channel
 import com.google.api.services.youtube.model.ChannelListResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
 
@@ -64,21 +69,37 @@ class MainActivity : AppCompatActivity() {
         val button = findViewById<Button>(R.id.button)
         val text = findViewById<TextView>(R.id.text)
 
-        button.setOnClickListener{
-            //TODO sometimes this bugs, idk why, will fix later.
+        button.setOnClickListener {
+
+            button.text = "Working."
+
+            //Need to start child job in order to use job.cancelAndJoin,
+            //once child job is canceled, main one is canceled too,
             scope.launch {
+                val job = launch {
+                    ensureActive()
+                    Log.e("Coroutine", "Working, ${this.coroutineContext}.")
+                    data = dataFromApi()
+                    Log.e("Coroutine", "Done, ${this.coroutineContext}.")
 
-                val deferredData = async { dataFromApi() }
-                data = deferredData.await()
+                }
 
-            }
-            if (data != null){
-                text.text = data!![0]
+                //delay(1000L)
+                Log.e("Coroutine", "Canceling.")
+                job.cancelAndJoin()
+                Log.e("Coroutine", "Canceled.")
+
+                if (data != null && data!!.isNotEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        text.text = data!![0]
+                        button.text = "Done."
+                    }
+                }
             }
         }
     }
 
-    //TODO userinformation isnt saved, so this is launched every time app is launched.
+    //TODO user information isn't saved, so this is launched every time app is launched.
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
 
         val data: Intent? = result.data
@@ -153,7 +174,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun dataFromApi(): List<String?>{
+    private suspend fun dataFromApi(): List<String?>{
         // Get a list of up to 10 files.
         val channelInfo: MutableList<String?> = ArrayList()
         var result: ChannelListResponse? = null
@@ -163,7 +184,7 @@ class MainActivity : AppCompatActivity() {
                 .execute()
         }
         catch (e: Exception){
-            Log.e("API", "API error while fetching data.")
+            Log.e("API", e.message.toString())
         }
 
         val channels: List<Channel>? = result?.items
