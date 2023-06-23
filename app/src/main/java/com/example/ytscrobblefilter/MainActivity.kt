@@ -30,12 +30,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
 
@@ -174,7 +171,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun dataFromApi(): List<String?>{
+    private fun dataFromApi(): List<String?>{
         // Get a list of up to 10 files.
         val channelInfo: MutableList<String?> = ArrayList()
         var result: ChannelListResponse? = null
