@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">YTScrobbleFilter</string>
+    <string name="button_text">Button</string>
+
 </resources>

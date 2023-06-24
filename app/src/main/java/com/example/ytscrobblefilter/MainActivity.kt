@@ -30,9 +30,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -62,6 +64,8 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         var data: List<String?>? = null
+        var isSong: Boolean? = null
+
 
         val button = findViewById<Button>(R.id.button)
         val text = findViewById<TextView>(R.id.text)
@@ -76,24 +80,38 @@ class MainActivity : AppCompatActivity() {
                 val job = launch {
                     ensureActive()
                     Log.e("Coroutine", "Working, ${this.coroutineContext}.")
-                    data = dataFromApi()
+                    //data = dataFromApi()
+                    isSong = isSong()
                     Log.e("Coroutine", "Done, ${this.coroutineContext}.")
 
                 }
 
-                //delay(1000L)
+                delay(1000L)
                 Log.e("Coroutine", "Canceling.")
                 job.cancelAndJoin()
                 Log.e("Coroutine", "Canceled.")
 
-                if (data != null && data!!.isNotEmpty()) {
+                if (isSong != null) {
                     withContext(Dispatchers.Main) {
-                        text.text = data!![0]
-                        button.text = "Done."
+                        text.text = isSong.toString()
+                        button.text = getString(R.string.button_text)
                     }
                 }
             }
         }
+    }
+
+    private fun isSong(): Boolean{
+
+        if (mService == null){
+            throw NullPointerException()
+        }
+
+        val request: YouTube.Videos.List = mService!!.videos()
+            .list("snippet")
+        val response = request.setId("bd6Xjh4ePps").execute()
+
+        return response.items[0].snippet.categoryId == "10"
     }
 
     //TODO user information isn't saved, so this is launched every time app is launched.
