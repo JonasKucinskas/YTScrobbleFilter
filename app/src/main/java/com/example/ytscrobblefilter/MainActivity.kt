@@ -2,10 +2,13 @@ package com.example.ytscrobblefilter
 
 import android.Manifest
 import android.accounts.Account
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_DENIED
+import android.media.session.MediaSessionManager
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.service.notification.NotificationListenerService
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
@@ -56,8 +59,23 @@ class MainActivity : AppCompatActivity() {
 
         if (mCredential.selectedAccountName == null) {
             signIn()
-
         }
+
+        val sessManager = ContextCompat.getSystemService(this, MediaSessionManager::class.java)!!
+        val mediaManager = MediaManager()
+
+
+        sessManager.addOnActiveSessionsChangedListener(mediaManager, ComponentName(this, this::class.java))
+        //https://github.com/kawaiiDango/pScrobbler/blob/main/app/src/main/java/com/arn/scrobble/NLService.kt#L178
+        //https://github.com/kawaiiDango/pScrobbler/blob/aec9cf3ece299a2cde1c6b12ac438a364c813ae1/app/src/main/java/com/arn/scrobble/SessListener.kt
+
+
+        mediaManager.onActiveSessionsChanged(sessManager.getActiveSessions(ComponentName(this, this::class.java)))
+
+
+
+
+
     }
 
     override fun onStart() {
@@ -184,8 +202,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) == PERMISSION_DENIED) {
-            requestPermissions(arrayOf(Manifest.permission.GET_ACCOUNTS), 1003)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.MEDIA_CONTENT_CONTROL) == PERMISSION_DENIED) {
+            requestPermissions(arrayOf(Manifest.permission.MEDIA_CONTENT_CONTROL), 6969)
         }
     }
 

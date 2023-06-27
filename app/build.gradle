@@ -54,4 +54,7 @@ dependencies {
         exclude group: 'org.apache.httpcomponents'
     }
 
+    implementation 'androidx.media:media:1.6.0'
+
+
 }
