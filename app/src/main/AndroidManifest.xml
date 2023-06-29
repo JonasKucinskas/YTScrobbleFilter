@@ -4,9 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
-    <uses-permission android:name="Manifest.permission.MEDIA_CONTENT_CONTROL"/>
-
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
 
     <application
@@ -29,7 +27,21 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".NotifListener"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:process=":bgScrobbler">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
 
+            <meta-data
+                android:name="android.service.notification.disabled_filter_types"
+                android:value="conversations" />
+
+        </service>
 
     </application>
 

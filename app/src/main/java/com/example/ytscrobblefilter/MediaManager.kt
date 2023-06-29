@@ -5,9 +5,9 @@ import android.media.session.MediaSessionManager
 
 class MediaManager(): MediaSessionManager.OnActiveSessionsChangedListener {
 
+
+
     override fun onActiveSessionsChanged(p0: MutableList<MediaController>?) {
-            TODO("Not yet implemented")
+        TODO("Not yet implemented")
     }
-
-
 }

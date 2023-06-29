@@ -61,21 +61,7 @@ class MainActivity : AppCompatActivity() {
             signIn()
         }
 
-        val sessManager = ContextCompat.getSystemService(this, MediaSessionManager::class.java)!!
-        val mediaManager = MediaManager()
-
-
-        sessManager.addOnActiveSessionsChangedListener(mediaManager, ComponentName(this, this::class.java))
-        //https://github.com/kawaiiDango/pScrobbler/blob/main/app/src/main/java/com/arn/scrobble/NLService.kt#L178
-        //https://github.com/kawaiiDango/pScrobbler/blob/aec9cf3ece299a2cde1c6b12ac438a364c813ae1/app/src/main/java/com/arn/scrobble/SessListener.kt
-
-
-        mediaManager.onActiveSessionsChanged(sessManager.getActiveSessions(ComponentName(this, this::class.java)))
-
-
-
-
-
+        NotifListener()
     }
 
     override fun onStart() {
@@ -202,8 +188,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.MEDIA_CONTENT_CONTROL) == PERMISSION_DENIED) {
-            requestPermissions(arrayOf(Manifest.permission.MEDIA_CONTENT_CONTROL), 6969)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) == PERMISSION_DENIED) {
+            requestPermissions(arrayOf(Manifest.permission.GET_ACCOUNTS), 1003)
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE) == PERMISSION_DENIED) {
+            requestPermissions(arrayOf(Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE), 999)
         }
     }
 
