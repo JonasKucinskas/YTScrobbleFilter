@@ -2,13 +2,10 @@ package com.example.ytscrobblefilter
 
 import android.Manifest
 import android.accounts.Account
-import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_DENIED
-import android.media.session.MediaSessionManager
 import android.net.ConnectivityManager
 import android.os.Bundle
-import android.service.notification.NotificationListenerService
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
@@ -61,7 +58,10 @@ class MainActivity : AppCompatActivity() {
             signIn()
         }
 
-        NotifListener()
+        val intent = Intent(this, NotifListenerService::class.java)
+
+        startService(intent)
+
     }
 
     override fun onStart() {
