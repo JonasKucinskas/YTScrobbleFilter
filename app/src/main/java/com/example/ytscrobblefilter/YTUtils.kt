@@ -6,7 +6,7 @@ import android.util.Log
 
 class YTUtils {
 
-    public fun isYoutubeController(controller: MediaController): Boolean{
+    private fun isYoutubeController(controller: MediaController): Boolean{
         return (controller.packageName == "app.revanced.android.youtube" ||
             controller.packageName == "com.google.android.youtube" )
     }
@@ -24,12 +24,15 @@ class YTUtils {
         return null
     }
 
-    public fun getSong(controller: MediaController): Song{
-        //return Song(controller.metadata.getString())
-        val title = controller.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
-        val artist = controller.metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+    public fun getSongData(controller: MediaController?): Song{
 
-        return Song(title, artist)
+
+
+        val title = controller?.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE)
+        val artist = controller?.metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+        val duration = controller?.metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION)
+
+        return Song(title, artist, duration)
     }
 
 }
