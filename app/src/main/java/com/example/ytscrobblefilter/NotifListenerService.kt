@@ -27,10 +27,6 @@ class NotifListenerService: NotificationListenerService(){
             ComponentName(this, NotifListenerService::class.java)
         )
 
-        val metadata = controllers[0].metadata?.description
-
-
-
     }
 
     override fun onBind(intent: Intent?): IBinder? {
