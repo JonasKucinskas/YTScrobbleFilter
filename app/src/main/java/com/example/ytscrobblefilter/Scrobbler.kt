@@ -1,23 +1,18 @@
 package com.example.ytscrobblefilter
 
+import android.content.Context
 import android.media.session.MediaController
-import com.google.api.services.youtube.YouTube
+class Scrobbler(context: Context) {
 
-class Scrobbler(mService: YouTube) {
-
-    val mService = mService
+    val context = context
     fun shouldScrobble(controllers: List<MediaController>): Boolean{
 
-        val ytUtils = YTUtils()
+        val ytUtils = YTUtils(context)
 
         val YTController = ytUtils.getYTController(controllers)
-        val song = ytUtils.getSongData(YTController)
+        val video = ytUtils.getSongData(YTController) ?: return false
 
-        if (song == null)
-            return false
-
-
-        ytUtils.getYTlink(song.title, mService)
+        ytUtils.getYTlink(video.title)
         return false
     }
 }

@@ -4,7 +4,6 @@ import android.Manifest
 import android.accounts.Account
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_DENIED
-import android.media.session.MediaController
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
@@ -18,13 +17,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
-import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.json.JsonFactory
-import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTube
-import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.Channel
 import com.google.api.services.youtube.model.ChannelListResponse
 import kotlinx.coroutines.CoroutineScope
@@ -41,28 +35,27 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var mCredential: GoogleAccountCredential
-    public lateinit var mService: YouTube
+    private lateinit var mService: YouTube
     private val scope = CoroutineScope(Dispatchers.IO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mCredential = getCredential()
-        mService = mServiceInit()
+        val ytUtils = YTUtils(this)
+
+        mCredential = ytUtils.getCredential()
+        mService = ytUtils.mServiceInit()
         checkPermissions()
 
         if (mCredential.selectedAccountName == null) {
             signIn()
         }
 
+
         val intent = Intent(this, NotifListenerService::class.java)
 
         startService(intent)
-
-
-        val scrobbler = Scrobbler(mService)
-        scrobbler.shouldScrobble()
     }
 
     override fun onStart() {
@@ -85,8 +78,8 @@ class MainActivity : AppCompatActivity() {
                 val job = launch {
                     ensureActive()
                     Log.e("Coroutine", "Working, ${this.coroutineContext}.")
-                    //data = dataFromApi()
-                    isSong = isSong()
+                    data = dataFromApi()
+                    //isSong = isSong()
                     Log.e("Coroutine", "Done, ${this.coroutineContext}.")
 
                 }
@@ -109,16 +102,16 @@ class MainActivity : AppCompatActivity() {
 
 
 
-    private fun isSong(): Boolean{
+    private fun isSong(url: String): Boolean{
 
-        if (mService == null){
-            throw NullPointerException()
-        }
+        //Gets video id from youtube url, start at 32, because it's the length of url before video id.
+        val videoID = url.substring(32)
+        //Not tested yet llul
 
-        val request: YouTube.Videos.List = mService!!.videos()
-            .list("snippet")
-        val response = request.setId("bd6Xjh4ePps").execute()
+        val request: YouTube.Videos.List = mService.videos().list("snippet")
+        val response = request.setId(videoID).execute()
 
+        //"10" category id is "Song"
         return response.items[0].snippet.categoryId == "10"
     }
 
@@ -149,23 +142,13 @@ class MainActivity : AppCompatActivity() {
         signInLauncher.launch(googleSignInClient.signInIntent)
     }
 
-    private fun mServiceInit(): YouTube{
-        val transport = AndroidHttp.newCompatibleTransport()
-        val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()
-        return YouTube.Builder(
-            transport, jsonFactory, mCredential
-        )
-            .setApplicationName("YTScrobbleFilter")
-            .build()
-    }
+
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()
     }
 
-    private fun getCredential(): GoogleAccountCredential {
-        return GoogleAccountCredential.usingOAuth2(this, listOf(YouTubeScopes.YOUTUBE_READONLY)).setBackOff(ExponentialBackOff())
-    }
+
 
     private fun acquireGooglePlayServices() {
         val apiAvailability = GoogleApiAvailability.getInstance()
