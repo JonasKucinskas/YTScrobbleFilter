@@ -4,6 +4,7 @@ import android.Manifest
 import android.accounts.Account
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_DENIED
+import android.media.session.MediaController
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
@@ -40,18 +41,15 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var mCredential: GoogleAccountCredential
-    private var mService: YouTube? = null
+    public lateinit var mService: YouTube
     private val scope = CoroutineScope(Dispatchers.IO)
-
-    private val REQUEST_GOOGLE_PLAY_SERVICES = 1002
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         mCredential = getCredential()
-        mServiceInnit()
-
+        mService = mServiceInit()
         checkPermissions()
 
         if (mCredential.selectedAccountName == null) {
@@ -62,6 +60,9 @@ class MainActivity : AppCompatActivity() {
 
         startService(intent)
 
+
+        val scrobbler = Scrobbler(mService)
+        scrobbler.shouldScrobble()
     }
 
     override fun onStart() {
@@ -105,6 +106,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+
+
     private fun isSong(): Boolean{
 
         if (mService == null){
@@ -145,10 +149,10 @@ class MainActivity : AppCompatActivity() {
         signInLauncher.launch(googleSignInClient.signInIntent)
     }
 
-    private fun mServiceInnit(){
+    private fun mServiceInit(): YouTube{
         val transport = AndroidHttp.newCompatibleTransport()
         val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()
-        mService = YouTube.Builder(
+        return YouTube.Builder(
             transport, jsonFactory, mCredential
         )
             .setApplicationName("YTScrobbleFilter")
@@ -177,7 +181,7 @@ class MainActivity : AppCompatActivity() {
         val dialog = apiAvailability.getErrorDialog(
             this@MainActivity,
             connectionStatusCode,
-            REQUEST_GOOGLE_PLAY_SERVICES)
+            1002)
         dialog!!.show()
     }
 
@@ -190,10 +194,6 @@ class MainActivity : AppCompatActivity() {
     private fun checkPermissions(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) == PERMISSION_DENIED) {
             requestPermissions(arrayOf(Manifest.permission.GET_ACCOUNTS), 1003)
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE) == PERMISSION_DENIED) {
-            requestPermissions(arrayOf(Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE), 999)
         }
     }
 

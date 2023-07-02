@@ -8,13 +8,9 @@ class MediaManager: MediaSessionManager.OnActiveSessionsChangedListener {
 
         //doesn't work when user pauses.
 
-        if (controllers == null)
+        if (controllers == null || controllers.size == 0)
             return
 
-        val YTUtils = YTUtils()
-
-        val YTController = YTUtils.getYTController(controllers)
-        val song = YTUtils.getSongData(YTController)
-
+        Scrobbler().shouldScrobble(controllers)
     }
 }
