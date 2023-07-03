@@ -34,7 +34,6 @@ import kotlinx.coroutines.withContext
 class MainActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
-    private lateinit var mCredential: GoogleAccountCredential
     private lateinit var mService: YouTube
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -43,14 +42,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val ytUtils = YTUtils(this)
-
-        mCredential = ytUtils.getCredential()
-        mService = ytUtils.mServiceInit()
+        ytUtils.getCredential()
         checkPermissions()
 
-        if (mCredential.selectedAccountName == null) {
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        var userEmail = sharedPreferences.getString("email", null)
+
+        if (userEmail == null){
             signIn()
+            userEmail = sharedPreferences.getString("email", null)
         }
+        ytUtils.mCredential.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
+        ytUtils.mServiceInit()
+
 
 
         val intent = Intent(this, NotifListenerService::class.java)
@@ -62,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         var data: List<String?>? = null
-        var isSong: Boolean? = null
+        val isSong: Boolean? = null
 
 
         val button = findViewById<Button>(R.id.button)
@@ -77,23 +81,22 @@ class MainActivity : AppCompatActivity() {
             scope.launch {
                 val job = launch {
                     ensureActive()
-                    Log.e("Coroutine", "Working, ${this.coroutineContext}.")
+                    Log.i("Coroutine", "Working, ${this.coroutineContext}.")
                     data = dataFromApi()
                     //isSong = isSong()
-                    Log.e("Coroutine", "Done, ${this.coroutineContext}.")
+                    Log.i("Coroutine", "Done, ${this.coroutineContext}.")
 
                 }
 
                 delay(1000L)
-                Log.e("Coroutine", "Canceling.")
+                Log.i("Coroutine", "Canceling.")
                 job.cancelAndJoin()
-                Log.e("Coroutine", "Canceled.")
+                Log.i("Coroutine", "Canceled.")
 
-                if (isSong != null) {
-                    withContext(Dispatchers.Main) {
-                        text.text = isSong.toString()
-                        button.text = getString(R.string.button_text)
-                    }
+
+                withContext(Dispatchers.Main) {
+                    text.text = isSong.toString()
+                    button.text = getString(R.string.button_text)
                 }
             }
         }
@@ -102,33 +105,23 @@ class MainActivity : AppCompatActivity() {
 
 
 
-    private fun isSong(url: String): Boolean{
 
-        //Gets video id from youtube url, start at 32, because it's the length of url before video id.
-        val videoID = url.substring(32)
-        //Not tested yet llul
-
-        val request: YouTube.Videos.List = mService.videos().list("snippet")
-        val response = request.setId(videoID).execute()
-
-        //"10" category id is "Song"
-        return response.items[0].snippet.categoryId == "10"
-    }
-
-    //TODO user information isn't saved, so this is launched every time app is launched.
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
 
         val data: Intent? = result.data
         if (data != null) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
-                // Handle successful sign-in
                 val account = task.getResult(ApiException::class.java)
-                mCredential.selectedAccount = Account(account.email, "com.example.ytscrobblefilter")
-                // Use the account for further API requests or store the access token
-                Log.e("TAG", "Sign-in succeeded")
+
+                //save user info
+                val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.putString("email", account.email)
+                editor.apply()
+
+                Log.i("TAG", "Sign-in succeeded")
             } catch (e: ApiException) {
-                // Handle sign-in failure
                 Log.e("TAG", "Sign-in failed", e)
             }
         }

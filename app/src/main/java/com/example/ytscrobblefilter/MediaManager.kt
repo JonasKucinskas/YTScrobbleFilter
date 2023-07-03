@@ -3,7 +3,6 @@ package com.example.ytscrobblefilter
 import android.content.Context
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
-import androidx.core.content.ContentProviderCompat.requireContext
 
 class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
 

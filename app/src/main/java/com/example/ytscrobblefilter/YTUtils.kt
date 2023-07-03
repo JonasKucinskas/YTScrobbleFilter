@@ -11,23 +11,25 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.YouTubeScopes
+import com.google.api.services.youtube.model.SearchListResponse
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 
 
 class YTUtils(Context: Context) {
 
-    private var mService: YouTube
-    private var mCredential: GoogleAccountCredential
+    public lateinit var mService: YouTube
+    public lateinit var mCredential: GoogleAccountCredential
     private var context: Context
-    init{
+    private val scope = CoroutineScope(Dispatchers.IO)
 
+    init {
         context = Context
-        mCredential = getCredential()
-        mService = mServiceInit()
-
     }
-
-
-
     private fun isYoutubeController(controller: MediaController): Boolean {
         return (controller.packageName == "app.revanced.android.youtube" ||
             controller.packageName == "com.google.android.youtube" )
@@ -60,37 +62,64 @@ class YTUtils(Context: Context) {
         return Video(title, creator, duration)
     }
 
-    //NAME is null.
-    fun getYTlink(title: String){
-        val request: YouTube.Search.List = mService.search()
-            .list(title)
-        val response = request.execute()
 
-        response.items
+    fun isSong(title: String): Boolean{
+
+        var response: SearchListResponse? = null
+
+        scope.launch {
+            val job = launch {
+                ensureActive()
+                val request = mService.search().list("snippet")
+                response = request.setMaxResults(1L)
+                    .setQ(title)
+                    .setType("video")
+                    .setVideoCategoryId("10").execute()
+            }
+
+            delay(1000L)
+            Log.i("getYTlink() coroutine", "Canceling.")
+            job.cancelAndJoin()
+            Log.i("getYTlink() coroutine", "Canceled.")
+        }
+
+        if (response == null){
+            throw Exception("API response is null")
+        }
+
+        return response!!.items.size > 0
     }
 
-    fun mServiceInit(): YouTube{
+    /*
+    private fun isSong(url: String): Boolean{
+
+        //Gets video id from youtube url, start at 32, because it's the length of url before video id.
+        val videoID = url.substring(32)
+        //Not tested yet llul
+
+        val request: YouTube.Videos.List = mService.videos().list("snippet")
+        val response = request.setId(videoID).execute()
+
+        //"10" category id is "Song"
+        return response.items[0].snippet.categoryId == "10"
+    }
+    */
+
+    fun mServiceInit(){
 
         val transport = AndroidHttp.newCompatibleTransport()
         val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()
-        return YouTube.Builder(
+        mService = YouTube.Builder(
             transport, jsonFactory, mCredential
         )
             .setApplicationName("YTScrobbleFilter")
             .build()
     }
 
-
-    fun getCredential(): GoogleAccountCredential {
+    fun getCredential() {
 
         mCredential = GoogleAccountCredential.usingOAuth2(context, listOf(YouTubeScopes.YOUTUBE_READONLY)).setBackOff(
             ExponentialBackOff()
         )
-        /*
-        if (mCredential.selectedAccountName == null) {
-            signIn()
-        }
-        */
-        return mCredential
     }
 }
