@@ -60,47 +60,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-
-        var data: List<String?>? = null
-        val isSong: Boolean? = null
-
-
-        val button = findViewById<Button>(R.id.button)
-        val text = findViewById<TextView>(R.id.text)
-
-        button.setOnClickListener {
-
-            button.text = "Working."
-
-            //Need to start child job in order to use job.cancelAndJoin,
-            //once child job is canceled, main one is canceled too,
-            scope.launch {
-                val job = launch {
-                    ensureActive()
-                    Log.i("Coroutine", "Working, ${this.coroutineContext}.")
-                    data = dataFromApi()
-                    //isSong = isSong()
-                    Log.i("Coroutine", "Done, ${this.coroutineContext}.")
-
-                }
-
-                delay(1000L)
-                Log.i("Coroutine", "Canceling.")
-                job.cancelAndJoin()
-                Log.i("Coroutine", "Canceled.")
-
-
-                withContext(Dispatchers.Main) {
-                    text.text = isSong.toString()
-                    button.text = getString(R.string.button_text)
-                }
-            }
-        }
     }
-
-
-
-
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
 
@@ -137,15 +97,12 @@ class MainActivity : AppCompatActivity() {
         scope.cancel()
     }
 
-
-
     private fun acquireGooglePlayServices() {
         val apiAvailability = GoogleApiAvailability.getInstance()
         val connectionStatusCode = apiAvailability.isGooglePlayServicesAvailable(this)
         if (apiAvailability.isUserResolvableError(connectionStatusCode)) {
             showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
         }
-
     }
 
     private fun showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode: Int) {
@@ -167,30 +124,5 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) == PERMISSION_DENIED) {
             requestPermissions(arrayOf(Manifest.permission.GET_ACCOUNTS), 1003)
         }
-    }
-
-    private fun dataFromApi(): List<String?>{
-        // Get a list of up to 10 files.
-        val channelInfo: MutableList<String?> = ArrayList()
-        var result: ChannelListResponse? = null
-        try{
-             result = mService!!.channels().list("snippet,contentDetails,statistics")
-                .setForUsername("GoogleDevelopers")
-                .execute()
-        }
-        catch (e: Exception){
-            Log.e("API", e.message.toString())
-        }
-
-        val channels: List<Channel>? = result?.items
-        if (channels != null) {
-            val channel: Channel = channels[0]
-            channelInfo.add(
-                "This channel's ID is " + channel.id + ". " +
-                        "Its title is '" + channel.snippet.title + ", " +
-                        "and it has " + channel.statistics.viewCount + " views."
-            )
-        }
-        return channelInfo
     }
 }

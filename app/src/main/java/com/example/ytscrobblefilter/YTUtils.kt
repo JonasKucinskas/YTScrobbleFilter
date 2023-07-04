@@ -66,10 +66,9 @@ class YTUtils(Context: Context) {
         return Video(title, creator, duration)
     }
 
-
     suspend fun isSong(title: String): Boolean{
 
-        var response: SearchListResponse? = null
+        var response: SearchListResponse?
 
         withContext(Dispatchers.IO) {
 
