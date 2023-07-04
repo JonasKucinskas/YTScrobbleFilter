@@ -1,9 +1,11 @@
 package com.example.ytscrobblefilter
 
+import android.accounts.Account
 import android.content.Context
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.json.JsonFactory
@@ -14,10 +16,12 @@ import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.SearchListResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class YTUtils(Context: Context) {
@@ -25,7 +29,7 @@ class YTUtils(Context: Context) {
     public lateinit var mService: YouTube
     public lateinit var mCredential: GoogleAccountCredential
     private var context: Context
-    private val scope = CoroutineScope(Dispatchers.IO)
+
 
     init {
         context = Context
@@ -48,7 +52,7 @@ class YTUtils(Context: Context) {
         return null
     }
 
-    fun getSongData(controller: MediaController?): Video?{
+    fun getVideoData(controller: MediaController?): Video?{
 
         if (controller == null){
             Log.e("MediaController", "Media controller doesn't contain meta-data or is null")
@@ -63,28 +67,25 @@ class YTUtils(Context: Context) {
     }
 
 
-    fun isSong(title: String): Boolean{
+    suspend fun isSong(title: String): Boolean{
 
         var response: SearchListResponse? = null
 
-        scope.launch {
-            val job = launch {
-                ensureActive()
-                val request = mService.search().list("snippet")
-                response = request.setMaxResults(1L)
-                    .setQ(title)
-                    .setType("video")
-                    .setVideoCategoryId("10").execute()
-            }
+        withContext(Dispatchers.IO) {
 
-            delay(1000L)
-            Log.i("getYTlink() coroutine", "Canceling.")
-            job.cancelAndJoin()
-            Log.i("getYTlink() coroutine", "Canceled.")
+            Log.i("isSong() coroutine", "Starting.")
+
+            val request = mService.search().list("snippet")
+            response = request.setMaxResults(1L)
+                .setQ(title)
+                .setType("video")
+                //category "10" is for songs.
+                .setVideoCategoryId("10").execute()
+
         }
 
         if (response == null){
-            throw Exception("API response is null")
+            return false
         }
 
         return response!!.items.size > 0
@@ -121,5 +122,10 @@ class YTUtils(Context: Context) {
         mCredential = GoogleAccountCredential.usingOAuth2(context, listOf(YouTubeScopes.YOUTUBE_READONLY)).setBackOff(
             ExponentialBackOff()
         )
+
+        val sharedPreferences = context.getSharedPreferences("MyPrefs", AppCompatActivity.MODE_PRIVATE)
+        val userEmail = sharedPreferences.getString("email", null)
+
+        mCredential.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
     }
 }

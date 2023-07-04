@@ -17,7 +17,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.model.Channel
 import com.google.api.services.youtube.model.ChannelListResponse
@@ -53,9 +52,6 @@ class MainActivity : AppCompatActivity() {
             userEmail = sharedPreferences.getString("email", null)
         }
         ytUtils.mCredential.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
-        ytUtils.mServiceInit()
-
-
 
         val intent = Intent(this, NotifListenerService::class.java)
 

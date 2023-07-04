@@ -11,17 +11,12 @@ class Scrobbler(context: Context) {
     fun shouldScrobble(controllers: List<MediaController>): Boolean{
 
         val ytUtils = YTUtils(context)
-        ytUtils.getCredential()//name empty every time brah
-
-        val sharedPreferences = context.getSharedPreferences("MyPrefs", AppCompatActivity.MODE_PRIVATE)
-        val userEmail = sharedPreferences.getString("email", null)
-
-        ytUtils.mCredential.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
+        ytUtils.getCredential()
         ytUtils.mServiceInit()
 
         val YTController = ytUtils.getYTController(controllers)
-        val video = ytUtils.getSongData(YTController) ?: return false
+        val video = ytUtils.getVideoData(YTController) ?: return false
 
-        return ytUtils.isSong(video.title)
+        return false//.isSong(video.title)
     }
 }
