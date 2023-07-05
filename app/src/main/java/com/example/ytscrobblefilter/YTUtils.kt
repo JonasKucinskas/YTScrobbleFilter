@@ -14,20 +14,14 @@ import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.SearchListResponse
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
 class YTUtils(Context: Context) {
 
-    public lateinit var mService: YouTube
-    public lateinit var mCredential: GoogleAccountCredential
+    lateinit var mService: YouTube
+    lateinit var mCredential: GoogleAccountCredential
     private var context: Context
 
 
@@ -125,6 +119,9 @@ class YTUtils(Context: Context) {
         val sharedPreferences = context.getSharedPreferences("MyPrefs", AppCompatActivity.MODE_PRIVATE)
         val userEmail = sharedPreferences.getString("email", null)
 
-        mCredential.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
+        if (userEmail != null){
+            mCredential.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
+        }
+
     }
 }

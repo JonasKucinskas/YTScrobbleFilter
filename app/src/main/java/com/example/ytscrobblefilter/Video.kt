@@ -2,7 +2,7 @@ package com.example.ytscrobblefilter
 
 class Video(Title: String, Creator: String, Duration: Long) {
     val title = Title
-    val artist = Creator
+    val creator = Creator
     val duration = Duration//In ms.
 
     /* All data I can get from YT controller:
