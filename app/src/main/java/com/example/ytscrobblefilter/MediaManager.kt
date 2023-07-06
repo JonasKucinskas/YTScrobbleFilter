@@ -8,14 +8,12 @@ import android.media.session.MediaSessionManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
+class MediaManager(private val context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
 
-    val context = context
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
 
         //doesn't work when user pauses/unpauses, need more testing.
@@ -44,7 +42,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                 val builder = NotificationCompat.Builder(context, "my_channel_id")
                     .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle("listeining")
+                    .setContentTitle("listening")
                     .setContentText(video.title)
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setAutoCancel(true)

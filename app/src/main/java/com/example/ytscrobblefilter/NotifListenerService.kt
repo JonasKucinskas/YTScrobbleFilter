@@ -1,7 +1,6 @@
 package com.example.ytscrobblefilter
 
 import android.content.ComponentName
-import android.content.Context
 import android.media.session.MediaSessionManager
 import android.service.notification.NotificationListenerService
 import android.util.Log
