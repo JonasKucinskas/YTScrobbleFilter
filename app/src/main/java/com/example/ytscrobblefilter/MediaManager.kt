@@ -30,7 +30,9 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
 
 
         CoroutineScope(Dispatchers.IO).launch{
-            if (ytUtils.isSong(video.title)) {
+
+            val videoID = ytUtils.getVideoID(video.title)
+            if (ytUtils.isSong(videoID)) {
                 Log.i("song", "is a song")
 
                 val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

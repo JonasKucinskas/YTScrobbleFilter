@@ -14,6 +14,7 @@ import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.SearchListResponse
+import com.google.api.services.youtube.model.VideoListResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -60,7 +61,7 @@ class YTUtils(Context: Context) {
         return Video(title, creator, duration)
     }
 
-    suspend fun isSong(title: String): Boolean{
+    suspend fun getVideoID(title: String): String{
 
         var response: SearchListResponse?
 
@@ -72,32 +73,30 @@ class YTUtils(Context: Context) {
             response = request.setMaxResults(1L)
                 .setQ(title)
                 .setType("video")
-                //category "10" is for songs.
-                .setVideoCategoryId("10").execute()
-
+                .execute()
         }
 
-        if (response == null){
-            return false
-        }
-
-        return response!!.items.size > 0
+        return response!!.items[0].id.videoId
     }
 
-    /*
-    private fun isSong(url: String): Boolean{
 
-        //Gets video id from youtube url, start at 32, because it's the length of url before video id.
-        val videoID = url.substring(32)
-        //Not tested yet llul
+    suspend fun isSong(videoID: String): Boolean{
 
-        val request: YouTube.Videos.List = mService.videos().list("snippet")
-        val response = request.setId(videoID).execute()
+        var response: VideoListResponse
+
+        withContext(Dispatchers.IO) {
+
+            Log.i("isSong() coroutine", "Starting.")
+
+            val request: YouTube.Videos.List = mService.videos().list("snippet")
+            response = request.setId(videoID).execute()
+        }
+        Log.i("isSong() coroutine", "Finished.")
 
         //"10" category id is "Song"
         return response.items[0].snippet.categoryId == "10"
     }
-    */
+
 
     fun mServiceInit(){
 
