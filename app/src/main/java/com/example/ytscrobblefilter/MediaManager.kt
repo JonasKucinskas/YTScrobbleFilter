@@ -17,6 +17,14 @@ import kotlinx.coroutines.launch
 
 class MediaManager(private val context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
 
+    val notificationHelper = NotificationHelper(context)
+    private val ytUtils = YTUtils(context)
+
+    init {
+        ytUtils.getCredential()
+        ytUtils.mServiceInit()
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
 
@@ -24,13 +32,6 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
 
         if (controllers.isNullOrEmpty())
             return
-
-        val ytUtils = YTUtils(context)
-        ytUtils.getCredential()
-        ytUtils.mServiceInit()
-
-
-
 
         val YTController = ytUtils.getYTController(controllers)
         val metadata = YTController?.metadata ?: return
@@ -45,21 +46,7 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
             if (ytUtils.isSong(videoID)) {
                 Log.i("Song", "is a song")
 
-                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-                    val channel = NotificationChannel("my_channel_id", "My Channel", NotificationManager.IMPORTANCE_DEFAULT)
-                    notificationManager.createNotificationChannel(channel)
-                }
-
-                val builder = NotificationCompat.Builder(context, "my_channel_id")
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle("listening")
-                    .setContentText(song.title)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setAutoCancel(true)
-
-                notificationManager.notify(1, builder.build())
+                notificationHelper.sendNotification("LISTENING", song.title)
             }
             else Log.i("song", "not a song")
         }
@@ -73,22 +60,7 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
             metadata ?: return
 
             val song = Song(metadata)
-
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-                val channel = NotificationChannel("my_channel_id", "My Channel", NotificationManager.IMPORTANCE_DEFAULT)
-                notificationManager.createNotificationChannel(channel)
-            }
-
-            val builder = NotificationCompat.Builder(context, "my_channel_id")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("SONG CHANGED")
-                .setContentText(song.title)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-
-            notificationManager.notify(2, builder.build())
+            notificationHelper.sendNotification("LISTENING", song.title)
         }
 
     }
