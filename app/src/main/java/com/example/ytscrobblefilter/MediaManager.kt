@@ -1,7 +1,5 @@
 package com.example.ytscrobblefilter
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.media.MediaMetadata
 import android.media.session.MediaController
@@ -10,7 +8,6 @@ import android.media.session.MediaSessionManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,7 +43,7 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
             if (ytUtils.isSong(videoID)) {
                 Log.i("Song", "is a song")
 
-                notificationHelper.sendNotification("LISTENING", song.title)
+                notificationHelper.sendNotification("LISTENING", song.title, 1)
             }
             else Log.i("song", "not a song")
         }
@@ -60,7 +57,7 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
             metadata ?: return
 
             val song = Song(metadata)
-            notificationHelper.sendNotification("LISTENING", song.title)
+            notificationHelper.sendNotification("CHANGED VIDEO", song.title, 2)
         }
 
     }

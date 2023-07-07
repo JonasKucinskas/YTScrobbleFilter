@@ -18,7 +18,7 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    fun sendNotification(title: String, text: String){
+    fun sendNotification(title: String, text: String, id: Int){
 
         val builder = NotificationCompat.Builder(context, "my_channel_id")
             .setSmallIcon(R.mipmap.ic_launcher)
@@ -27,6 +27,6 @@ class NotificationHelper(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
 
-        notificationManager.notify(2, builder.build())
+        notificationManager.notify(id, builder.build())
     }
 }
