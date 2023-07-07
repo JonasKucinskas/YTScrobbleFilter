@@ -19,16 +19,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 
-class YTUtils(Context: Context) {
+class YTUtils(private val context: Context) {
 
     lateinit var mService: YouTube
     lateinit var mCredential: GoogleAccountCredential
-    private var context: Context
 
-
-    init {
-        context = Context
-    }
     private fun isYoutubeController(controller: MediaController): Boolean {
         return (controller.packageName == "app.revanced.android.youtube" ||
             controller.packageName == "com.google.android.youtube" )
@@ -45,20 +40,6 @@ class YTUtils(Context: Context) {
         Log.e("Media controller", "No Youtube media controller found.")
 
         return null
-    }
-
-    fun getVideoData(controller: MediaController?): Video?{
-
-        if (controller == null){
-            Log.e("MediaController", "Media controller doesn't contain meta-data or is null")
-            return null
-        }
-
-        val title = controller.metadata!!.getString(MediaMetadata.METADATA_KEY_TITLE)
-        val creator = controller.metadata!!.getString(MediaMetadata.METADATA_KEY_ARTIST)
-        val duration = controller.metadata!!.getLong(MediaMetadata.METADATA_KEY_DURATION)
-
-        return Video(title, creator, duration)
     }
 
     suspend fun getVideoID(title: String): String{
