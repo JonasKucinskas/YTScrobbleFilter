@@ -86,10 +86,5 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
             notificationPermissionLauncher.launch(intent)
         }
-        /*
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) == PERMISSION_DENIED) {
-            requestPermissions(arrayOf(Manifest.permission.GET_ACCOUNTS), 1003)
-        }
-        */
     }
 }

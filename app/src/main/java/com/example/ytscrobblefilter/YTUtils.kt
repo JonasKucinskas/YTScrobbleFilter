@@ -2,7 +2,6 @@ package com.example.ytscrobblefilter
 
 import android.accounts.Account
 import android.content.Context
-import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity

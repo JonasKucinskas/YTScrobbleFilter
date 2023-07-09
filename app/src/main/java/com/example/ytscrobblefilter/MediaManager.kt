@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MediaManager(private val context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
+class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
 
     val notificationHelper = NotificationHelper(context)
     private val ytUtils = YTUtils(context)
@@ -25,40 +25,36 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
 
-        //doesn't work when user pauses/unpauses, need more testing.
+        //doesn't work when user pauses/unpauses.
 
         if (controllers.isNullOrEmpty())
             return
 
-        val YTController = ytUtils.getYTController(controllers)
-        val metadata = YTController?.metadata ?: return
+        val ytController = ytUtils.getYTController(controllers) ?: return
 
-        val callback = ControllerCallback(ytUtils)
-        YTController.registerCallback(callback)
-        val song = Song(metadata)
-
-        CoroutineScope(Dispatchers.IO).launch{
-
-            val videoID = ytUtils.getVideoID(song.title)
-            if (ytUtils.isSong(videoID)) {
-                Log.i("Song", "is a song")
-
-                notificationHelper.sendNotification("LISTENING", song.title, 1)
-            }
-            else Log.i("song", "not a song")
-        }
-
-
+        val callback = ControllerCallback()
+        ytController.registerCallback(callback)
     }
 
-    inner class ControllerCallback(private val ytUtils: YTUtils): Callback(){
+    inner class ControllerCallback(): Callback(){
         @Synchronized
         override fun onMetadataChanged(metadata: MediaMetadata?){
             metadata ?: return
 
             val song = Song(metadata)
+
+            CoroutineScope(Dispatchers.IO).launch{
+
+                val videoID = ytUtils.getVideoID(song.title)
+                if (ytUtils.isSong(videoID)) {
+                    Log.i("Song", "is a song")
+
+                    notificationHelper.sendNotification("LISTENING", song.title, 1)
+                }
+                else Log.i("song", "not a song")
+            }
+
             notificationHelper.sendNotification("CHANGED VIDEO", song.title, 2)
         }
-
     }
 }
