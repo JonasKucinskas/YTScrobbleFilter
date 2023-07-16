@@ -16,6 +16,8 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
     val notificationHelper = NotificationHelper(context)
     private val ytUtils = YTUtils(context)
+    var ytController: MediaController? = null
+    var lastVideoTitle: String? = null
 
     init {
         ytUtils.getCredential()
@@ -30,21 +32,34 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
         if (controllers.isNullOrEmpty())
             return
 
-        val ytController = ytUtils.getYTController(controllers) ?: return
+        ytController = ytUtils.getYTController(controllers) ?: return
 
         val callback = ControllerCallback()
-        ytController.registerCallback(callback)
+        ytController!!.registerCallback(callback)
     }
 
-    inner class ControllerCallback(): Callback(){
+
+    inner class ControllerCallback: Callback(){
+
+        //this is getting called multiple times for one metadata change, no idea why.
         @Synchronized
         override fun onMetadataChanged(metadata: MediaMetadata?){
             metadata ?: return
 
             val song = Song(metadata)
 
+            if (song.title.isNullOrEmpty() || song.title == lastVideoTitle){
+                return
+            }//doesn't detect if user want to listed to the same song twice.
+            else lastVideoTitle = song.title
+
+            Log.i("MetaData", "changed to ${metadata.getString(MediaMetadata.METADATA_KEY_TITLE)}")
+
             CoroutineScope(Dispatchers.IO).launch{
 
+                Log.i("Coroutine", "Coroutine started")
+
+                /*
                 val videoID = ytUtils.getVideoID(song.title)
                 if (ytUtils.isSong(videoID)) {
                     Log.i("Song", "is a song")
@@ -52,9 +67,16 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                     notificationHelper.sendNotification("LISTENING", song.title, 1)
                 }
                 else Log.i("song", "not a song")
+                */
             }
 
             notificationHelper.sendNotification("CHANGED VIDEO", song.title, 2)
+        }
+        override fun onSessionDestroyed() {
+            super.onSessionDestroyed()
+            synchronized(this) {
+                ytController!!.unregisterCallback(this)
+            }
         }
     }
 }
