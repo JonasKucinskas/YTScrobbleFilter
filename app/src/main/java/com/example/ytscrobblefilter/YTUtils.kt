@@ -73,7 +73,7 @@ class YTUtils(private val context: Context) {
         }
         Log.i("isSong() coroutine", "Finished.")
 
-        //"10" category id is "Song"
+        //"10" is a category id for a "Song"
         return response.items[0].snippet.categoryId == "10"
     }
 

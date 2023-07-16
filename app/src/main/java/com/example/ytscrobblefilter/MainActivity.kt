@@ -1,11 +1,13 @@
 package com.example.ytscrobblefilter
 
 import android.accounts.Account
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -52,21 +54,24 @@ class MainActivity : AppCompatActivity() {
     private var notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (!NotificationManagerCompat.getEnabledListenerPackages(this).contains(this.packageName)) {
             Log.e("Notification listener permission", "Denied")
+            finishAffinity()//close the app
         }
+        else
+        {
+            Log.i("Notification listener permission", "Granted")
+            ytUtils.getCredential()
 
-        Log.i("Notification listener permission", "Granted")
-        ytUtils.getCredential()
+            val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            val userEmail = sharedPreferences.getString("email", null)
 
-        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        val userEmail = sharedPreferences.getString("email", null)
+            if (userEmail == null){
+                signIn()
+            }
 
-        if (userEmail == null){
-            signIn()
+            val intent = Intent(this, NotifListenerService::class.java)
+
+            startService(intent)
         }
-
-        val intent = Intent(this, NotifListenerService::class.java)
-
-        startService(intent)
     }
 
 
@@ -82,9 +87,24 @@ class MainActivity : AppCompatActivity() {
 
         //check for notification access
         if (!NotificationManagerCompat.getEnabledListenerPackages(this).contains(this.packageName)) {
-
-            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-            notificationPermissionLauncher.launch(intent)
+            showPermissionDialog()
         }
+    }
+
+    private fun showPermissionDialog(){
+
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(R.string.permission_dialog_message)
+            .setPositiveButton(R.string.permission_dialog_approved_button,
+                DialogInterface.OnClickListener { dialog, id ->
+                    val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                    notificationPermissionLauncher.launch(intent)
+                })
+            .setNegativeButton(R.string.permission_dialog_denied_button,
+                DialogInterface.OnClickListener { dialog, id ->
+                    finishAffinity()//close the app
+                })
+        builder.create()
+        builder.show()
     }
 }

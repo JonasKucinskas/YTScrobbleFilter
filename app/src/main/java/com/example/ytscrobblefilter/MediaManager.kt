@@ -45,21 +45,19 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
         @Synchronized
         override fun onMetadataChanged(metadata: MediaMetadata?){
             metadata ?: return
+            //doesn't detect if user want to listen to the same song twice.
 
             val song = Song(metadata)
 
             if (song.title.isNullOrEmpty() || song.title == lastVideoTitle){
                 return
-            }//doesn't detect if user want to listed to the same song twice.
+            }
             else lastVideoTitle = song.title
 
             Log.i("MetaData", "changed to ${metadata.getString(MediaMetadata.METADATA_KEY_TITLE)}")
 
             CoroutineScope(Dispatchers.IO).launch{
 
-                Log.i("Coroutine", "Coroutine started")
-
-                /*
                 val videoID = ytUtils.getVideoID(song.title)
                 if (ytUtils.isSong(videoID)) {
                     Log.i("Song", "is a song")
@@ -67,7 +65,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                     notificationHelper.sendNotification("LISTENING", song.title, 1)
                 }
                 else Log.i("song", "not a song")
-                */
+
             }
 
             notificationHelper.sendNotification("CHANGED VIDEO", song.title, 2)

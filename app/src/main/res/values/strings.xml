@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">YTScrobbleFilter</string>
     <string name="button_text">Button</string>
+    <string name="permission_dialog_message">This app required notification listener permission to function!</string>
+    <string name="permission_dialog_approved_button">Take me there!</string>
+    <string name="permission_dialog_denied_button">Quit app</string>
 
 
 </resources>
