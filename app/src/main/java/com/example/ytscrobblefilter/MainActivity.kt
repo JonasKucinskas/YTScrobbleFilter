@@ -14,6 +14,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,6 +28,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         checkPermissions()
+        val lastfm = LastfmUtils()
+
+        CoroutineScope(Dispatchers.IO).launch{
+            lastfm.getArtistInfo("Crystal Castles")
+        }
     }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -73,7 +81,6 @@ class MainActivity : AppCompatActivity() {
             startService(intent)
         }
     }
-
 
     private fun signIn() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

@@ -27,8 +27,6 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
 
-        //doesn't work when user pauses/unpauses.
-
         if (controllers.isNullOrEmpty())
             return
 
@@ -45,30 +43,30 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
         @Synchronized
         override fun onMetadataChanged(metadata: MediaMetadata?){
             metadata ?: return
-            //doesn't detect if user want to listen to the same song twice.
 
-            val song = Song(metadata)
+            val track = Track(metadata)
 
-            if (song.title.isNullOrEmpty() || song.title == lastVideoTitle){
+            //this somewhat fixes multiple calls, however user cant scrobble same track 2 times in a row.
+            if (track.title.isEmpty() || track.title == lastVideoTitle){
                 return
             }
-            else lastVideoTitle = song.title
+            else lastVideoTitle = track.title
 
             Log.i("MetaData", "changed to ${metadata.getString(MediaMetadata.METADATA_KEY_TITLE)}")
 
             CoroutineScope(Dispatchers.IO).launch{
 
-                val videoID = ytUtils.getVideoID(song.title)
+                val videoID = ytUtils.getVideoID(track.title)
                 if (ytUtils.isSong(videoID)) {
                     Log.i("Song", "is a song")
 
-                    notificationHelper.sendNotification("LISTENING", song.title, 1)
+                    notificationHelper.sendNotification("LISTENING", track.title, 1)
                 }
                 else Log.i("song", "not a song")
 
             }
 
-            notificationHelper.sendNotification("CHANGED VIDEO", song.title, 2)
+            notificationHelper.sendNotification("CHANGED VIDEO", track.title, 2)
         }
         override fun onSessionDestroyed() {
             super.onSessionDestroyed()
