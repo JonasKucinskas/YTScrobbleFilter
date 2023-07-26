@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
-def apikeyPropertiesFile = rootProject.file("gradle.properties")
+def apikeyPropertiesFile = rootProject.file("secret.properties")
 def apikeyProperties = new Properties()
 apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
 android {

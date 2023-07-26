@@ -31,8 +31,12 @@ class MainActivity : AppCompatActivity() {
         checkPermissions()
         val lastfm = LastfmUtils()
 
+        var response: String? = null
+
         CoroutineScope(Dispatchers.IO).launch{
-            lastfm.getArtistInfo("Crystal Castles")
+            //lastfm.getArtistInfo("Crystal Castles")
+            response = lastfm.sendGetRequest("https://www.last.fm/api/auth/?api_key=${lastfm.apiKey}")
+
         }
     }
 
