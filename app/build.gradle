@@ -17,9 +17,10 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        //bbd ant sito meslo nx
         buildConfigField "String", "LFMapikey", apikeyProperties["LFMapikey"]
         buildConfigField "String", "LFMSecret", apikeyProperties["LFMSecret"]
+        buildConfigField "String", "LFMusrname", apikeyProperties["LFMusrname"]
+        buildConfigField "String", "LFMpasswd", apikeyProperties["LFMpasswd"]
 
     }
 
@@ -69,6 +70,5 @@ dependencies {
     }
 
     implementation 'androidx.media:media:1.6.0'
-
-
+    implementation 'de.u-mass:lastfm-java:0.1.2'
 }

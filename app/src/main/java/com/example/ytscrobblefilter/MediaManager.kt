@@ -8,6 +8,9 @@ import android.media.session.MediaSessionManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import de.umass.lastfm.Authenticator
+import de.umass.lastfm.Session
+import de.umass.lastfm.scrobble.ScrobbleResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,10 +21,19 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     private val ytUtils = YTUtils(context)
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
+    var session: Session? = null
 
     init {
         ytUtils.getCredential()
         ytUtils.mServiceInit()
+        CoroutineScope(Dispatchers.IO).launch {
+            session = Authenticator.getMobileSession(
+                BuildConfig.LFMusrname,
+                BuildConfig.LFMpasswd,
+                BuildConfig.LFMapikey,
+                BuildConfig.LFMSecret
+            )
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
@@ -61,6 +73,8 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                     Log.i("Song", "is a song")
 
                     notificationHelper.sendNotification("LISTENING", track.title, 1)
+                    val result: ScrobbleResult = de.umass.lastfm.Track.updateNowPlaying(track.artist, track.title, session)
+
                 }
                 else Log.i("song", "not a song")
 

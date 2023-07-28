@@ -3,7 +3,6 @@ package com.example.ytscrobblefilter
 import android.accounts.Account
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -15,9 +14,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,15 +27,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         checkPermissions()
-        val lastfm = LastfmUtils()
-
-        var response: String? = null
-
-        CoroutineScope(Dispatchers.IO).launch{
-            //lastfm.getArtistInfo("Crystal Castles")
-            response = lastfm.sendGetRequest("https://www.last.fm/api/auth/?api_key=${lastfm.apiKey}")
-
-        }
     }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
