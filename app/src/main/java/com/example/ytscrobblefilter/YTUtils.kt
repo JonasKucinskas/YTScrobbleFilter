@@ -41,13 +41,12 @@ class YTUtils(private val context: Context) {
         return null
     }
 
-    suspend fun getVideoID(title: String): String{
+    suspend fun getVideoID(title: String): String {
 
         var response: SearchListResponse?
 
         withContext(Dispatchers.IO) {
-
-            Log.i("isSong() coroutine", "Starting.")
+            Log.i("getVideoID() coroutine", "Starting.")
 
             val request = mService.search().list("snippet")
             response = request.setMaxResults(1L)
@@ -55,10 +54,21 @@ class YTUtils(private val context: Context) {
                 .setType("video")
                 .execute()
         }
+/*
+        val track = Track()
+
+        track.artist = response!!.items[0].snippet.channelTitle
+        track.title = title
+        track.cover = response!!.items[0].snippet.thumbnails
+
+
+        response!!.items[0].snippet.channelTitle
+        response!!.items[0].id.videoId
+*/
+        Log.i("getVideoID() coroutine", "Finished.")
 
         return response!!.items[0].id.videoId
     }
-
 
     suspend fun isSong(videoID: String): Boolean{
 

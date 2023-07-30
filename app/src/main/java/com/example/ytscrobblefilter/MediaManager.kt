@@ -21,19 +21,11 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     private val ytUtils = YTUtils(context)
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
-    var session: Session? = null
+    var lfmUtils = LFMUtils()
 
     init {
         ytUtils.getCredential()
         ytUtils.mServiceInit()
-        CoroutineScope(Dispatchers.IO).launch {
-            session = Authenticator.getMobileSession(
-                BuildConfig.LFMusrname,
-                BuildConfig.LFMpasswd,
-                BuildConfig.LFMapikey,
-                BuildConfig.LFMSecret
-            )
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
@@ -69,15 +61,19 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
             CoroutineScope(Dispatchers.IO).launch{
 
                 val videoID = ytUtils.getVideoID(track.title)
+                val response = lfmUtils.titleParse(track.title)
+
                 if (ytUtils.isSong(videoID)) {
                     Log.i("Song", "is a song")
 
                     notificationHelper.sendNotification("LISTENING", track.title, 1)
-                    val result: ScrobbleResult = de.umass.lastfm.Track.updateNowPlaying(track.artist, track.title, session)
 
+
+                    //need to parse metadata before scrobbling
+                    //val result: ScrobbleResult = de.umass.lastfm.Track.updateNowPlaying(track.artist, track.title, session)
+                    //Log.i("Track.Scrobble", result.status.toString())
                 }
                 else Log.i("song", "not a song")
-
             }
 
             notificationHelper.sendNotification("CHANGED VIDEO", track.title, 2)
