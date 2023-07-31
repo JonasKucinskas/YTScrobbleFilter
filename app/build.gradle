@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.ytscrobblefilter"
-        minSdk 24
+        minSdk 26
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -70,5 +70,5 @@ dependencies {
     }
 
     implementation 'androidx.media:media:1.6.0'
-    implementation 'de.u-mass:lastfm-java:0.1.2'
+    implementation 'com.github.KunalFarmah98:lastfm-java:2.0'
 }

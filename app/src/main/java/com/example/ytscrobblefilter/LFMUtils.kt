@@ -11,32 +11,35 @@ import kotlinx.coroutines.withContext
 class LFMUtils {
 
     lateinit var session: Session
-    val username = BuildConfig.LFMusrname
-    val password = BuildConfig.LFMpasswd
-    val apikey = BuildConfig.LFMapikey
-    val secret = BuildConfig.LFMSecret
+    private val username = BuildConfig.LFMusrname
+    private val password = BuildConfig.LFMpasswd
+    private val apikey = BuildConfig.LFMapikey
+    private val secret = BuildConfig.LFMSecret
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
-                session = Authenticator.getMobileSession(
-                    username,
-                    password,
-                    apikey,
-                    secret
-                )
+            session = Authenticator.getMobileSession(
+                username,
+                password,
+                apikey,
+                secret
+            )
         }
-
     }
 
-    suspend fun titleParse(title: String): Collection<de.umass.lastfm.Track>{
+    suspend fun trackSearch(title: String): de.umass.lastfm.Track?{
 
         var response: Collection<de.umass.lastfm.Track>
 
         withContext(Dispatchers.IO) {
-            Log.i("titleParse() coroutine", "Starting.")
+            Log.i("trackSearch() coroutine", "Starting.")
             response = de.umass.lastfm.Track.search(title, apikey)
         }
 
-        return response
+        if (response.isEmpty()){
+            return null
+        }
+
+        return response.elementAt(0)
     }
 }

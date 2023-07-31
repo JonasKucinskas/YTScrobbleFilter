@@ -20,8 +20,8 @@ import kotlinx.coroutines.withContext
 
 class YTUtils(private val context: Context) {
 
-    lateinit var mService: YouTube
-    lateinit var mCredential: GoogleAccountCredential
+    var mService: YouTube? = null
+    var mCredential: GoogleAccountCredential? = null
 
     private fun isYoutubeController(controller: MediaController): Boolean {
         return (controller.packageName == "app.revanced.android.youtube" ||
@@ -48,23 +48,13 @@ class YTUtils(private val context: Context) {
         withContext(Dispatchers.IO) {
             Log.i("getVideoID() coroutine", "Starting.")
 
-            val request = mService.search().list("snippet")
+            val request = mService!!.search().list("snippet")
             response = request.setMaxResults(1L)
                 .setQ(title)
                 .setType("video")
                 .execute()
         }
-/*
-        val track = Track()
 
-        track.artist = response!!.items[0].snippet.channelTitle
-        track.title = title
-        track.cover = response!!.items[0].snippet.thumbnails
-
-
-        response!!.items[0].snippet.channelTitle
-        response!!.items[0].id.videoId
-*/
         Log.i("getVideoID() coroutine", "Finished.")
 
         return response!!.items[0].id.videoId
@@ -78,7 +68,7 @@ class YTUtils(private val context: Context) {
 
             Log.i("isSong() coroutine", "Starting.")
 
-            val request: YouTube.Videos.List = mService.videos().list("snippet")
+            val request: YouTube.Videos.List = mService!!.videos().list("snippet")
             response = request.setId(videoID).execute()
         }
         Log.i("isSong() coroutine", "Finished.")
@@ -109,8 +99,7 @@ class YTUtils(private val context: Context) {
         val userEmail = sharedPreferences.getString("email", null)
 
         if (userEmail != null){
-            mCredential.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
+            mCredential!!.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
         }
-
     }
 }

@@ -15,8 +15,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 
-
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -27,8 +25,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         checkPermissions()
-
-
     }
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -46,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             editor.apply()
             //
 
-            ytUtils.mCredential.selectedAccount = Account(account.email, "com.example.ytscrobblefilter")
+            ytUtils.mCredential!!.selectedAccount = Account(account.email, "com.example.ytscrobblefilter")
 
 
             Log.i("TAG", "Sign-in succeeded")
@@ -63,18 +59,20 @@ class MainActivity : AppCompatActivity() {
         else
         {
             Log.i("Notification listener permission", "Granted")
-            ytUtils.getCredential()
 
+            /* Google services are not used currently
+            ytUtils.getCredential()
             val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
             val userEmail = sharedPreferences.getString("email", null)
 
             if (userEmail == null){
                 signIn()
             }
-
+            */
             val intent = Intent(this, NotifListenerService::class.java)
 
             startService(intent)
+
         }
     }
 
