@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import de.umass.lastfm.Authenticator
 import de.umass.lastfm.Session
+import de.umass.lastfm.scrobble.ScrobbleData
 import de.umass.lastfm.scrobble.ScrobbleResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +53,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
             metadata ?: return
 
             val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)
+            val duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION)
 
             //this somewhat fixes multiple calls, however user cant scrobble same track 2 times in a row.
             if (title.isEmpty() || title == lastVideoTitle){
@@ -61,6 +63,8 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
             Log.i("MetaData", "changed to ${metadata.getString(MediaMetadata.METADATA_KEY_TITLE)}")
 
+            val data: ScrobbleData = ScrobbleData()
+
             CoroutineScope(Dispatchers.IO).launch{
 
                 //val videoID = ytUtils.getVideoID(title)
@@ -69,14 +73,14 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 if (track != null/*ytUtils.isSong(videoID)*/) {
                     Log.i("Song", "is a song")
 
-                    notificationHelper.sendNotification("LISTENING", title, 1)
+                    data.track = track.name
+                    data.artist = track.artist
+                    data.duration = duration.toInt()
+                    data.timestamp = (System.currentTimeMillis() / 1000).toInt()
 
-                    val timeSec = (System.currentTimeMillis() / 1000).toInt()
+                    notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}", 1)
 
-                    val result: ScrobbleResult = de.umass.lastfm.Track.updateNowPlaying(track.artist, track.name, lfmUtils.session)
-                    val scrobbleResult: ScrobbleResult = de.umass.lastfm.Track.scrobble(track.artist, track.name, timeSec, lfmUtils.session)
-
-                    Log.i("Track.Scrobble", scrobbleResult.status.toString())
+                    lfmUtils.nowPlaying(data)
                 }
                 else Log.i("song", "not a song")
             }
