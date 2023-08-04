@@ -53,7 +53,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
             metadata ?: return
 
             val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)
-            val duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION)
+            val duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION).toInt()
 
             //this somewhat fixes multiple calls, however user cant scrobble same track 2 times in a row.
             if (title.isEmpty() || title == lastVideoTitle){
@@ -61,28 +61,26 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
             }
             else lastVideoTitle = title
 
-            Log.i("MetaData", "changed to ${metadata.getString(MediaMetadata.METADATA_KEY_TITLE)}")
+            Log.i("MetaData", "changed to $title")
 
-            val data: ScrobbleData = ScrobbleData()
 
             CoroutineScope(Dispatchers.IO).launch{
 
                 //val videoID = ytUtils.getVideoID(title)
                 val track = lfmUtils.trackSearch(title)
 
-                if (track != null/*ytUtils.isSong(videoID)*/) {
-                    Log.i("Song", "is a song")
-
-                    data.track = track.name
-                    data.artist = track.artist
-                    data.duration = duration.toInt()
-                    data.timestamp = (System.currentTimeMillis() / 1000).toInt()
-
-                    notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}", 1)
-
-                    lfmUtils.nowPlaying(data)
+                if (track == null){
+                    Log.i("song", "not a song")
+                    return@launch
                 }
-                else Log.i("song", "not a song")
+                Log.i("Song", "is a song")
+
+
+                val trackData = lfmUtils.scrobbleData(track, duration)
+
+                lfmUtils.nowPlaying(trackData)
+                //lfmUtils.scrobble(trackData)
+                notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}", 1)
             }
 
             notificationHelper.sendNotification("CHANGED VIDEO", title, 2)
