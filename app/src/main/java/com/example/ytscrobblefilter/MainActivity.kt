@@ -54,14 +54,14 @@ class MainActivity : AppCompatActivity() {
     private var notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (!NotificationManagerCompat.getEnabledListenerPackages(this).contains(this.packageName)) {
             Log.e("Notification listener permission", "Denied")
-            finishAffinity()//close the app
+            showPermissionDialog()//show dialog again.
         }
         else
         {
             Log.i("Notification listener permission", "Granted")
 
             /* Google services are not used currently
-            ytUtils.getCredential()
+            ytUtils.YTservicesInit()
             val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
             val userEmail = sharedPreferences.getString("email", null)
 
@@ -70,9 +70,7 @@ class MainActivity : AppCompatActivity() {
             }
             */
             val intent = Intent(this, NotifListenerService::class.java)
-
             startService(intent)
-
         }
     }
 

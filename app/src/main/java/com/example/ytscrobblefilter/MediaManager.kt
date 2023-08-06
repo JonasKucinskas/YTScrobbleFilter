@@ -28,6 +28,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
     var lfmUtils = LFMUtils()
+    var playing: Boolean = false
 
     /*
     init {
@@ -96,5 +97,6 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 ytController!!.unregisterCallback(this)
             }
         }
+
     }
 }

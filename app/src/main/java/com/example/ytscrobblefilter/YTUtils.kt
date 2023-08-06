@@ -23,6 +23,11 @@ class YTUtils(private val context: Context) {
     var mService: YouTube? = null
     var mCredential: GoogleAccountCredential? = null
 
+    fun YTservicesInit(){
+        mService = mServiceInit()
+        mCredential = getCredential()
+    }
+
     private fun isYoutubeController(controller: MediaController): Boolean {
         return (controller.packageName == "app.revanced.android.youtube" ||
             controller.packageName == "com.google.android.youtube" )
@@ -78,20 +83,21 @@ class YTUtils(private val context: Context) {
     }
 
 
-    fun mServiceInit(){
+    fun mServiceInit(): YouTube? {
 
         val transport = AndroidHttp.newCompatibleTransport()
         val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()
-        mService = YouTube.Builder(
+
+        return YouTube.Builder(
             transport, jsonFactory, mCredential
         )
             .setApplicationName("YTScrobbleFilter")
             .build()
     }
 
-    fun getCredential() {
+    fun getCredential(): GoogleAccountCredential? {
 
-        mCredential = GoogleAccountCredential.usingOAuth2(context, listOf(YouTubeScopes.YOUTUBE_READONLY)).setBackOff(
+        val mCredential = GoogleAccountCredential.usingOAuth2(context, listOf(YouTubeScopes.YOUTUBE_READONLY)).setBackOff(
             ExponentialBackOff()
         )
 
@@ -101,5 +107,7 @@ class YTUtils(private val context: Context) {
         if (userEmail != null){
             mCredential!!.selectedAccount = Account(userEmail, "com.example.ytscrobblefilter")
         }
+
+        return mCredential
     }
 }
