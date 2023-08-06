@@ -6,6 +6,7 @@ import android.media.session.MediaController
 import android.media.session.MediaController.Callback
 import android.media.session.MediaSessionManager
 import android.os.Build
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.RequiresApi
 import de.umass.lastfm.Authenticator
@@ -14,7 +15,9 @@ import de.umass.lastfm.scrobble.ScrobbleData
 import de.umass.lastfm.scrobble.ScrobbleResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.lang.Math.min
 import java.time.Instant
 import java.time.ZoneOffset
 
@@ -34,10 +37,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     */
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
-
-        if (controllers.isNullOrEmpty())
-            return
-
+        controllers ?: return
         ytController = ytUtils.getYTController(controllers) ?: return
 
         val callback = ControllerCallback()
@@ -75,12 +75,17 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 }
                 Log.i("Song", "is a song")
 
-
                 val trackData = lfmUtils.scrobbleData(track, duration)
 
-                lfmUtils.nowPlaying(trackData)
-                //lfmUtils.scrobble(trackData)
                 notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}", 1)
+
+                //lfmUtils.nowPlaying(trackData)
+                val offset = min(trackData.duration / 2, 240000)//4 minutes of half of track's duration.
+
+                delay(trackData.timestamp + offset - System.currentTimeMillis() / 1000)
+
+                lfmUtils.scrobble(trackData)
+                notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}", 3)
             }
 
             notificationHelper.sendNotification("CHANGED VIDEO", title, 2)

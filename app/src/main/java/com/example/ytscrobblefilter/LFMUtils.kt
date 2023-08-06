@@ -10,6 +10,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.Math.min
+import kotlin.system.measureTimeMillis
 
 class LFMUtils {
 
@@ -30,12 +32,12 @@ class LFMUtils {
         }
     }
 
-    suspend fun trackSearch(title: String): de.umass.lastfm.Track?{
+    suspend fun trackSearch(title: String): Track?{
 
-        var response: Collection<de.umass.lastfm.Track>
+        var response: Collection<Track>
 
         withContext(Dispatchers.IO) {
-            response = de.umass.lastfm.Track.search(null, title, 1, apikey)
+            response = Track.search(null, title, 1, apikey)
         }
 
         if (response.isEmpty()){
@@ -48,16 +50,15 @@ class LFMUtils {
     suspend fun nowPlaying(trackData: ScrobbleData){
 
         withContext(Dispatchers.IO) {
-            val result = de.umass.lastfm.Track.updateNowPlaying(trackData, session)
+            val result = Track.updateNowPlaying(trackData, session)
             Log.i("Track.updateNowPlaying", result.status.toString())
         }
     }
 
     suspend fun scrobble(trackData: ScrobbleData){
-        val timeSec = (System.currentTimeMillis() / 1000).toInt() + trackData.timestamp
 
         withContext(Dispatchers.IO) {
-            val result = de.umass.lastfm.Track.scrobble(trackData.artist, trackData.track, timeSec, session)
+            val result = Track.scrobble(trackData.artist, trackData.track, trackData.timestamp, session)
             Log.i("Track.Scrobble", result.status.toString())
         }
     }
@@ -69,13 +70,7 @@ class LFMUtils {
         data.track = track.name
         data.artist = track.artist
         data.duration = duration
-
-
-        //if track is longer than 4 minutes, scrobble 4 min into the track, else scrobble when half of the track scrobbles.
-        if (data.duration / 2 >= 240000){//4 minutes in me
-            data.timestamp = (System.currentTimeMillis() / 1000).toInt() + 240000
-        }
-        else data.timestamp = (System.currentTimeMillis() / 1000).toInt() + data.duration / 2
+        data.timestamp = (System.currentTimeMillis() / 1000).toInt();
 
         return data
     }
