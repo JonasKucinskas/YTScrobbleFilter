@@ -28,24 +28,6 @@ class YTUtils(private val context: Context) {
         mCredential = getCredential()
     }
 
-    private fun isYoutubeController(controller: MediaController): Boolean {
-        return (controller.packageName == "app.revanced.android.youtube" ||
-            controller.packageName == "com.google.android.youtube" )
-    }
-
-    fun getYTController(controllers: List<MediaController>): MediaController? {
-
-        for (controller in controllers){
-            if (isYoutubeController(controller)){
-                return controller
-            }
-        }
-
-        Log.e("Media controller", "No Youtube media controller found.")
-
-        return null
-    }
-
     suspend fun getVideoID(title: String): String {
 
         var response: SearchListResponse?

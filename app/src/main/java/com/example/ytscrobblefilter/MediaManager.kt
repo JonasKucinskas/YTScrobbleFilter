@@ -7,35 +7,28 @@ import android.media.session.MediaController.Callback
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Build
-import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.RequiresApi
-import de.umass.lastfm.Authenticator
-import de.umass.lastfm.Session
-import de.umass.lastfm.scrobble.ScrobbleData
-import de.umass.lastfm.scrobble.ScrobbleResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Math.min
-import java.time.Instant
-import java.time.ZoneOffset
 
 class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
 
     val notificationHelper = NotificationHelper(context)
-    private val ytUtils = YTUtils(context)
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
     var lfmUtils = LFMUtils()
-    val corountineScope = CoroutineScope(Dispatchers.IO)
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
+
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
         controllers ?: return
-        ytController = ytUtils.getYTController(controllers) ?: return
+        ytController = getYTController(controllers) ?: return
 
         val callback = ControllerCallback()
         ytController!!.registerCallback(callback)
@@ -61,7 +54,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
             Log.i("MetaData", "changed to $title")
 
 
-            corountineScope.launch{
+            coroutineScope.launch{
 
 
                 //val videoID = ytUtils.getVideoID(title)
@@ -109,7 +102,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
             Log.i("Playback state change", stateName)
 
             if (state.state == PlaybackState.STATE_STOPPED){
-                corountineScope.cancel()//cancer current scrobble call
+                coroutineScope.cancel()//cancer current scrobble call
             }
         }
 
@@ -119,5 +112,23 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 ytController!!.unregisterCallback(this)
             }
         }
+    }
+
+    private fun isYoutubeController(controller: MediaController): Boolean {
+        return (controller.packageName == "app.revanced.android.youtube" ||
+                controller.packageName == "com.google.android.youtube" )
+    }
+
+    fun getYTController(controllers: List<MediaController>): MediaController? {
+
+        for (controller in controllers){
+            if (isYoutubeController(controller)){
+                return controller
+            }
+        }
+
+        Log.e("Media controller", "No Youtube media controller found.")
+
+        return null
     }
 }

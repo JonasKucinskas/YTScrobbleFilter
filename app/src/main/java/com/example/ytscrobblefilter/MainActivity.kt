@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
             Log.i("Notification listener permission", "Granted")
 
             /* Google services are not used currently
-            ytUtils.YTservicesInit()
+            ytUtils.YTservicesInit()//this will probably slow things down.
             val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
             val userEmail = sharedPreferences.getString("email", null)
 
