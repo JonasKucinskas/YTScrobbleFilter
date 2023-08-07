@@ -5,6 +5,7 @@ import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaController.Callback
 import android.media.session.MediaSessionManager
+import android.media.session.PlaybackState
 import android.os.Build
 import android.os.SystemClock
 import android.util.Log
@@ -15,6 +16,7 @@ import de.umass.lastfm.scrobble.ScrobbleData
 import de.umass.lastfm.scrobble.ScrobbleResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Math.min
@@ -28,14 +30,8 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
     var lfmUtils = LFMUtils()
-    var playing: Boolean = false
+    val corountineScope = CoroutineScope(Dispatchers.IO)
 
-    /*
-    init {
-        ytUtils.getCredential()
-        ytUtils.mServiceInit()
-    }
-    */
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
         controllers ?: return
@@ -65,7 +61,8 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
             Log.i("MetaData", "changed to $title")
 
 
-            CoroutineScope(Dispatchers.IO).launch{
+            corountineScope.launch{
+
 
                 //val videoID = ytUtils.getVideoID(title)
                 val track = lfmUtils.trackSearch(title)
@@ -80,9 +77,10 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                 notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}", 1)
 
-                //lfmUtils.nowPlaying(trackData)
+                lfmUtils.nowPlaying(trackData)
                 val offset = min(trackData.duration / 2, 240000)//4 minutes of half of track's duration.
 
+                //theres probably a better way to do this.
                 delay(trackData.timestamp + offset - System.currentTimeMillis() / 1000)
 
                 lfmUtils.scrobble(trackData)
@@ -91,12 +89,35 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
             notificationHelper.sendNotification("CHANGED VIDEO", title, 2)
         }
+
+        override fun onPlaybackStateChanged(state: PlaybackState?) {
+            super.onPlaybackStateChanged(state)
+            state ?: return
+
+            val stateName = when (state.state) {
+                PlaybackState.STATE_NONE -> "None"
+                PlaybackState.STATE_STOPPED -> "Stopped"
+                PlaybackState.STATE_PAUSED -> "Paused"
+                PlaybackState.STATE_PLAYING -> "Playing"
+                PlaybackState.STATE_FAST_FORWARDING -> "Fast Forwarding"
+                PlaybackState.STATE_REWINDING -> "Rewinding"
+                PlaybackState.STATE_BUFFERING -> "Buffering"
+                PlaybackState.STATE_ERROR -> "Error"
+                else -> "Unknown"
+            }
+
+            Log.i("Playback state change", stateName)
+
+            if (state.state == PlaybackState.STATE_STOPPED){
+                corountineScope.cancel()//cancer current scrobble call
+            }
+        }
+
         override fun onSessionDestroyed() {
             super.onSessionDestroyed()
             synchronized(this) {
                 ytController!!.unregisterCallback(this)
             }
         }
-
     }
 }
