@@ -21,7 +21,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     val notificationHelper = NotificationHelper(context)
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
-    var lfmUtils = LFMUtils()
+    var lfmUtils = LFMUtils(context)
     val coroutineScope = CoroutineScope(Dispatchers.IO)
 
 
@@ -56,31 +56,33 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
             coroutineScope.launch{
 
-
                 //val videoID = ytUtils.getVideoID(title)
                 val track = lfmUtils.trackSearch(title)
 
                 if (track == null){
-                    Log.i("song", "not a song")
+                    Log.i("Is a Song?", "Not a song")
                     return@launch
                 }
-                Log.i("Song", "is a song")
+                Log.i("Is a Song?", "is a song")
 
                 val trackData = lfmUtils.scrobbleData(track, duration)
 
-                notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}", 1)
+                notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}",
+                    NotificationHelper.NotificationIds.listening
+                )
 
                 lfmUtils.nowPlaying(trackData)
                 val offset = min(trackData.duration / 2, 240000)//4 minutes of half of track's duration.
 
-                //theres probably a better way to do this.
-                delay(trackData.timestamp + offset - System.currentTimeMillis() / 1000)
+                //there's probably a better way to do this.
+                delay(offset.toLong())
 
                 lfmUtils.scrobble(trackData)
-                notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}", 3)
-            }
 
-            notificationHelper.sendNotification("CHANGED VIDEO", title, 2)
+                notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}",
+                    NotificationHelper.NotificationIds.scrobbled
+                )
+            }
         }
 
         override fun onPlaybackStateChanged(state: PlaybackState?) {
@@ -101,8 +103,8 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
             Log.i("Playback state change", stateName)
 
-            if (state.state == PlaybackState.STATE_STOPPED){
-                coroutineScope.cancel()//cancer current scrobble call
+            if (stateName == "Stopped"){
+                coroutineScope.cancel()//cancer current scrobble and other calls.
             }
         }
 
@@ -119,7 +121,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 controller.packageName == "com.google.android.youtube" )
     }
 
-    fun getYTController(controllers: List<MediaController>): MediaController? {
+    private fun getYTController(controllers: List<MediaController>): MediaController? {
 
         for (controller in controllers){
             if (isYoutubeController(controller)){

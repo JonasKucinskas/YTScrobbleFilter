@@ -2,7 +2,6 @@ package com.example.ytscrobblefilter
 
 import android.accounts.Account
 import android.content.Context
-import android.media.session.MediaController
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.google.api.client.extensions.android.http.AndroidHttp
@@ -20,7 +19,7 @@ import kotlinx.coroutines.withContext
 
 class YTUtils(private val context: Context) {
 
-    var mService: YouTube? = null
+    private var mService: YouTube? = null
     var mCredential: GoogleAccountCredential? = null
 
     fun YTservicesInit(){
@@ -65,7 +64,7 @@ class YTUtils(private val context: Context) {
     }
 
 
-    fun mServiceInit(): YouTube? {
+    private fun mServiceInit(): YouTube? {
 
         val transport = AndroidHttp.newCompatibleTransport()
         val jsonFactory: JsonFactory = JacksonFactory.getDefaultInstance()
@@ -77,7 +76,7 @@ class YTUtils(private val context: Context) {
             .build()
     }
 
-    fun getCredential(): GoogleAccountCredential? {
+    private fun getCredential(): GoogleAccountCredential? {
 
         val mCredential = GoogleAccountCredential.usingOAuth2(context, listOf(YouTubeScopes.YOUTUBE_READONLY)).setBackOff(
             ExponentialBackOff()
