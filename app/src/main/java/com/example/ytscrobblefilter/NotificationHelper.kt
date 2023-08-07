@@ -2,10 +2,11 @@ package com.example.ytscrobblefilter
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.app.NotificationCompat.EXTRA_NOTIFICATION_ID
 
 class NotificationHelper(private val context: Context) {
 
@@ -28,11 +29,17 @@ class NotificationHelper(private val context: Context) {
 
     fun sendNotification(title: String, text: String, id: Int){
 
+        val intent = Intent(context, ScrobbleEditActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
         val builder = NotificationCompat.Builder(context, "my_channel_id")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
         notificationManager.notify(id, builder.build())

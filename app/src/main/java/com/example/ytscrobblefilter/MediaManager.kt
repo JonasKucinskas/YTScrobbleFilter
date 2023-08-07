@@ -7,6 +7,7 @@ import android.media.session.MediaController.Callback
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Build
+import com.example.ytscrobblefilter.NotificationHelper.NotificationIds
 import android.util.Log
 import androidx.annotation.RequiresApi
 import kotlinx.coroutines.CoroutineScope
@@ -68,7 +69,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 val trackData = lfmUtils.scrobbleData(track, duration)
 
                 notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}",
-                    NotificationHelper.NotificationIds.listening
+                    NotificationIds.listening
                 )
 
                 lfmUtils.nowPlaying(trackData)
@@ -80,7 +81,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 lfmUtils.scrobble(trackData)
 
                 notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}",
-                    NotificationHelper.NotificationIds.scrobbled
+                    NotificationIds.scrobbled
                 )
             }
         }
