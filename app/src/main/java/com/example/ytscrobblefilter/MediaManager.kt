@@ -10,6 +10,9 @@ import android.os.Build
 import com.example.ytscrobblefilter.NotificationHelper.NotificationIds
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -17,14 +20,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Math.min
 
-class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
+class MediaManager(private val context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
 
     val notificationHelper = NotificationHelper(context)
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
     var lfmUtils = LFMUtils(context)
     val coroutineScope = CoroutineScope(Dispatchers.IO)
-
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
@@ -54,8 +56,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
             Log.i("MetaData", "changed to $title")
 
-
-            coroutineScope.launch{
+            coroutineScope.launch {
 
                 //val videoID = ytUtils.getVideoID(title)
                 val track = lfmUtils.trackSearch(title)
@@ -67,6 +68,8 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 Log.i("Is a Song?", "is a song")
 
                 val trackData = lfmUtils.scrobbleData(track, duration)
+
+                ScrobbleDataSingleton.setScrobbleData(trackData)
 
                 notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}",
                     NotificationIds.listening
@@ -133,5 +136,17 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
         Log.e("Media controller", "No Youtube media controller found.")
 
         return null
+    }
+
+    object ScrobbleDataSingleton {
+        private val scrobbleData = MutableLiveData<ScrobbleData>()
+
+        fun setScrobbleData(data: ScrobbleData) {
+            scrobbleData.postValue(data)
+        }
+
+        fun getScrobbleData(): LiveData<ScrobbleData> {
+            return scrobbleData
+        }
     }
 }
