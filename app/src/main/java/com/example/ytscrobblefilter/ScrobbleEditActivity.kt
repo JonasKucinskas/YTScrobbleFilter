@@ -11,9 +11,6 @@ class ScrobbleEditActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scrobble_edit)
 
-        val textView = findViewById<TextView>(R.id.textView)
-        MediaManager.ScrobbleDataSingleton.getScrobbleData().observe(this) { scrobbleData: ScrobbleData ->
-            textView.text = "${scrobbleData.artist} - ${scrobbleData.track}"
-        }
+
     }
 }

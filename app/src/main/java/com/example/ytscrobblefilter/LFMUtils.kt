@@ -6,6 +6,7 @@ import com.example.ytscrobblefilter.NotificationHelper.NotificationIds
 import de.umass.lastfm.Authenticator
 import de.umass.lastfm.Session
 import de.umass.lastfm.Track
+import de.umass.lastfm.User
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +16,7 @@ import kotlinx.coroutines.withContext
 class LFMUtils(context: Context) {
 
     private lateinit var session: Session
+
     private val username = BuildConfig.LFMusrname
     private val password = BuildConfig.LFMpasswd
     private val apikey = BuildConfig.LFMapikey
@@ -30,6 +32,7 @@ class LFMUtils(context: Context) {
                 secret
             )
         }
+
     }
 
     suspend fun trackSearch(title: String): Track?{
@@ -51,6 +54,19 @@ class LFMUtils(context: Context) {
         }
 
         return response!!.elementAt(0)
+    }
+
+    suspend fun getArtistLib(): Collection<de.umass.lastfm.Artist>? {
+        return withContext(Dispatchers.IO) {
+            try{
+                User.getTopArtists("Baradac", apikey)
+            }
+            catch (e: Exception){
+                Log.e("User.getTopArtists()", e.toString())
+                notificationHelper.sendNotification("Get artists error", "Failed to fetch artists", NotificationIds.getArtistError)
+                null
+            }
+        }
     }
 
     suspend fun nowPlaying(trackData: ScrobbleData){

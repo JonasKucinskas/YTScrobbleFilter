@@ -58,16 +58,17 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
 
             coroutineScope.launch {
 
-                //val videoID = ytUtils.getVideoID(title)
                 val track = lfmUtils.trackSearch(title)
-
+                /*
                 if (track == null){
                     Log.i("Is a Song?", "Not a song")
                     return@launch
                 }
+
+                 */
                 Log.i("Is a Song?", "is a song")
 
-                val trackData = lfmUtils.scrobbleData(track, duration)
+                val trackData = lfmUtils.scrobbleData(track!!, duration)
 
                 ScrobbleDataSingleton.setScrobbleData(trackData)
 
@@ -75,13 +76,16 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
                     NotificationIds.listening
                 )
 
-                lfmUtils.nowPlaying(trackData)
+                //lfmUtils.nowPlaying(trackData)
                 val offset = min(trackData.duration / 2, 240000)//4 minutes of half of track's duration.
 
                 //there's probably a better way to do this.
                 delay(offset.toLong())
 
-                lfmUtils.scrobble(trackData)
+                //lfmUtils.scrobble(trackData)
+
+                val lib = lfmUtils.getArtistLib()
+                Log.i("test", lib.toString())
 
                 notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}",
                     NotificationIds.scrobbled
@@ -108,7 +112,8 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
             Log.i("Playback state change", stateName)
 
             if (stateName == "Stopped"){
-                coroutineScope.cancel()//cancer current scrobble and other calls.
+                //coroutineScope.cancel()//cancel current scrobble and other calls.
+                //Log.i("Coroutine scope", "Canceled")
             }
         }
 

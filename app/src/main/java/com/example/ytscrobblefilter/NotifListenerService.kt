@@ -11,16 +11,11 @@ class NotifListenerService: NotificationListenerService(){
     override fun onCreate() {
         super.onCreate()
 
-        Log.i("Session", "Notification listener service running.")
+        Log.i("Notification listener service", "Running.")
 
         val sessManager = ContextCompat.getSystemService(this, MediaSessionManager::class.java)!!
         val mediaManager = MediaManager(this)
 
         sessManager.addOnActiveSessionsChangedListener(mediaManager, ComponentName(this, this::class.java))
-        /*
-        val controllers: List<MediaController> = sessManager.getActiveSessions(
-            ComponentName(this, NotifListenerService::class.java)
-        )
-        */
     }
 }

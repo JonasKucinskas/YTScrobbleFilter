@@ -73,5 +73,5 @@ dependencies {
     }
 
     implementation 'androidx.media:media:1.6.0'
-    implementation 'com.github.KunalFarmah98:lastfm-java:2.0'
+    implementation 'com.github.JonasKucinskas:lastfm-java:2.0'
 }

@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.EXTRA_NOTIFICATION_ID
 
 class NotificationHelper(private val context: Context) {
 
@@ -19,6 +18,7 @@ class NotificationHelper(private val context: Context) {
         const val trackSearchError = 3
         const val nowPlayingError = 4
         const val scrobbleError = 5
+        const val getArtistError = 6
     }
 
 
