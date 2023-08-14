@@ -81,6 +81,9 @@ class MainActivity : AppCompatActivity() {
                 signIn()
             }
             */
+
+
+
             val intent = Intent(this, NotifListenerService::class.java)
             startService(intent)
         }

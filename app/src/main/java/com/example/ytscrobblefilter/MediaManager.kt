@@ -80,11 +80,11 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
                 val offset = min(trackData.duration / 2, 240000)//4 minutes of half of track's duration.
 
                 //there's probably a better way to do this.
-                delay(offset.toLong())
+                //delay(offset.toLong())
 
                 //lfmUtils.scrobble(trackData)
 
-                val lib = lfmUtils.getArtistLib()
+                val lib = lfmUtils.getAllArtists(1)
                 Log.i("test", lib.toString())
 
                 notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}",

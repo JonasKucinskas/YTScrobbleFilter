@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.ytscrobblefilter.NotificationHelper.NotificationIds
 import de.umass.lastfm.Authenticator
+import de.umass.lastfm.Period
 import de.umass.lastfm.Session
 import de.umass.lastfm.Track
 import de.umass.lastfm.User
@@ -32,7 +33,6 @@ class LFMUtils(context: Context) {
                 secret
             )
         }
-
     }
 
     suspend fun trackSearch(title: String): Track?{
@@ -56,10 +56,11 @@ class LFMUtils(context: Context) {
         return response!!.elementAt(0)
     }
 
-    suspend fun getArtistLib(): Collection<de.umass.lastfm.Artist>? {
+    suspend fun getAllArtists(page: Int): Collection<de.umass.lastfm.Artist>? {
         return withContext(Dispatchers.IO) {
             try{
-                User.getTopArtists("Baradac", apikey)
+                    val limit = 895
+                    User.getTopArtists("Baradac", Period.OVERALL, apikey, limit)
             }
             catch (e: Exception){
                 Log.e("User.getTopArtists()", e.toString())
@@ -69,6 +70,16 @@ class LFMUtils(context: Context) {
         }
     }
 
+/*
+    suspend fun getFullLibrary(){
+        val artistsList = mutableListOf<Collection<de.umass.lastfm.Artist>?>()
+
+        for (i in 0 until n) {
+            val artists = getArtistLib(i)
+            artistsList.add(artists)
+        }
+    }
+*/
     suspend fun nowPlaying(trackData: ScrobbleData){
 
         withContext(Dispatchers.IO) {
