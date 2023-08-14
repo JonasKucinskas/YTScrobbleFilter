@@ -1,11 +1,15 @@
 package com.example.ytscrobblefilter
 
+
+import com.example.ytscrobblefilter.data.room.Artist
+import com.example.ytscrobblefilter.data.room.ArtistDatabase
 import android.accounts.Account
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -15,7 +19,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import de.umass.lastfm.ImageSize
 import de.umass.lastfm.scrobble.ScrobbleData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,8 +36,34 @@ class MainActivity : AppCompatActivity() {
 
         checkPermissions()
 
-
         val textView = findViewById<TextView>(R.id.text)
+        val button = findViewById<Button>(R.id.button)
+
+        button.setOnClickListener{
+            button.text = "Importing artists!"
+            val lfmUtils = LFMUtils(this)
+            var artists: Collection<de.umass.lastfm.Artist>? = null
+            val db = ArtistDatabase.getInstance(this)
+            CoroutineScope(Dispatchers.IO).launch {
+                artists = lfmUtils.getAllArtists(1)
+                if (artists.isNullOrEmpty())
+                    return@launch
+
+                val roomArtists = artists!!.map { apiResponse ->
+                    Artist().apply{
+                        name = apiResponse.name
+                        mbid = apiResponse.mbid
+                        playcount = apiResponse.playcount
+                        url = apiResponse.url
+                        imageUrl = apiResponse.getImageURL(ImageSize.MEDIUM)
+                    }
+                }
+                db.artistDao().insertAll(roomArtists)
+                button.text = "Artists imported!"
+            }
+
+        }
+
         MediaManager.ScrobbleDataSingleton.getScrobbleData().observe(this) { scrobbleData: ScrobbleData ->
 
             if (scrobbleData.artist == ""){

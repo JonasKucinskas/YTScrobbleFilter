@@ -1,4 +1,4 @@
-import androidx.room.ColumnInfo
+package com.example.ytscrobblefilter.data.room
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -7,18 +7,9 @@ class Artist {
     @PrimaryKey(autoGenerate = true)
     var id = 0
 
-    @ColumnInfo(name = "username")
     var name: String? = null
-
-    @ColumnInfo(name = "mbid")
     var mbid: String? = null
-
-    @ColumnInfo(name = "playcount")
     var playcount: Int? = null
-
-    @ColumnInfo(name = "url")
     var url: String? = null
-
-    @ColumnInfo(name = "imageUrls")
-    var imageUrls: ArrayList<String>? = null
+    var imageUrl: String? = null
 }
