@@ -20,6 +20,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import de.umass.lastfm.ImageSize
+import de.umass.lastfm.User
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,17 +40,22 @@ class MainActivity : AppCompatActivity() {
         val textView = findViewById<TextView>(R.id.text)
         val button = findViewById<Button>(R.id.button)
 
+        //import artist from last fm profile.
         button.setOnClickListener{
             button.text = "Importing artists!"
             val lfmUtils = LFMUtils(this)
-            var artists: Collection<de.umass.lastfm.Artist>? = null
+
+
             val db = ArtistDatabase.getInstance(this)
             CoroutineScope(Dispatchers.IO).launch {
-                artists = lfmUtils.getAllArtists(1)
+
+                val user = User.getInfo("Baradac", lfmUtils.apikey)
+
+                val artists = lfmUtils.getAllArtists(user.artistCount)
                 if (artists.isNullOrEmpty())
                     return@launch
 
-                val roomArtists = artists!!.map { apiResponse ->
+                val roomArtists = artists.map { apiResponse ->
                     Artist().apply{
                         name = apiResponse.name
                         mbid = apiResponse.mbid
@@ -65,7 +71,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         MediaManager.ScrobbleDataSingleton.getScrobbleData().observe(this) { scrobbleData: ScrobbleData ->
-
             if (scrobbleData.artist == ""){
                 textView.text = "not scrobbling"
             }

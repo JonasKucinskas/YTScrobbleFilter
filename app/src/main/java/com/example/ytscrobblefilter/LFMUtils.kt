@@ -20,7 +20,7 @@ class LFMUtils(context: Context) {
 
     private val username = BuildConfig.LFMusrname
     private val password = BuildConfig.LFMpasswd
-    private val apikey = BuildConfig.LFMapikey
+    val apikey = BuildConfig.LFMapikey
     private val secret = BuildConfig.LFMSecret
     private val notificationHelper = NotificationHelper(context)
 
@@ -56,11 +56,10 @@ class LFMUtils(context: Context) {
         return response!!.elementAt(0)
     }
 
-    suspend fun getAllArtists(page: Int): Collection<de.umass.lastfm.Artist>? {
+    suspend fun getAllArtists(artistCount: Int): Collection<de.umass.lastfm.Artist>? {
         return withContext(Dispatchers.IO) {
             try{
-                    val limit = 895
-                    User.getTopArtists("Baradac", Period.OVERALL, apikey, limit)
+                User.getTopArtists("Baradac", Period.OVERALL, apikey, artistCount)
             }
             catch (e: Exception){
                 Log.e("User.getTopArtists()", e.toString())
@@ -70,16 +69,6 @@ class LFMUtils(context: Context) {
         }
     }
 
-/*
-    suspend fun getFullLibrary(){
-        val artistsList = mutableListOf<Collection<de.umass.lastfm.Artist>?>()
-
-        for (i in 0 until n) {
-            val artists = getArtistLib(i)
-            artistsList.add(artists)
-        }
-    }
-*/
     suspend fun nowPlaying(trackData: ScrobbleData){
 
         withContext(Dispatchers.IO) {
