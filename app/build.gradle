@@ -74,7 +74,7 @@ dependencies {
     }
 
     implementation 'androidx.media:media:1.6.0'
-    implementation 'com.github.JonasKucinskas:lastfm-java:master-SNAPSHOT'
+    implementation 'com.github.JonasKucinskas:lastfm-java:-SNAPSHOT'
 
     implementation 'androidx.room:room-ktx:2.5.2'
     kapt "androidx.room:room-compiler:2.5.2"

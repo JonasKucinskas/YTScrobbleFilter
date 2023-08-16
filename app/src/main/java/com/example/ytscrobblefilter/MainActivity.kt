@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity() {
             button.text = "Importing artists!"
             val lfmUtils = LFMUtils(this)
 
-
             val db = ArtistDatabase.getInstance(this)
             CoroutineScope(Dispatchers.IO).launch {
 

@@ -11,4 +11,7 @@ interface ArtistDao {
     fun getAllArtists(): List<Artist?>?
     @Insert
     fun insertAll(users: List<Artist>)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM Artist WHERE name = :name LIMIT 1)")
+    fun contains(name: String): Boolean
 }

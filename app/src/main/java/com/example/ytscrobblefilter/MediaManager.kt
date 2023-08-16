@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.ytscrobblefilter.data.room.ArtistDatabase
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Math.min
 
-class MediaManager(private val context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
+class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
 
     val notificationHelper = NotificationHelper(context)
     var ytController: MediaController? = null
@@ -55,41 +56,37 @@ class MediaManager(private val context: Context): MediaSessionManager.OnActiveSe
             else lastVideoTitle = title
 
             Log.i("MetaData", "changed to $title")
+            val db = ArtistDatabase.getInstance(context)
 
             coroutineScope.launch {
 
                 val track = lfmUtils.trackSearch(title)
-                /*
+
                 if (track == null){
-                    Log.i("Is a Song?", "Not a song")
-                    return@launch
+                    Log.i("trackSearch", "Not in last fm database.")
+
+                    //todo buttons on notification
+                    notificationHelper.sendNotification("Should scrobble?", "Scrobble this artist from now on?",
+                        NotificationIds.shouldScrobble
+                    )
                 }
+                else if(db.artistDao().contains(track.artist)){
+                    val trackData = lfmUtils.scrobbleData(track, duration)
 
-                 */
-                Log.i("Is a Song?", "is a song")
+                    //lfmUtils.nowPlaying(trackData)
+                    val offset = min(trackData.duration / 2, 240000)//4 minutes of half of track's duration.
 
-                val trackData = lfmUtils.scrobbleData(track!!, duration)
+                    //there's probably a better way to do this.
+                    //delay(offset.toLong())
 
-                ScrobbleDataSingleton.setScrobbleData(trackData)
+                    //lfmUtils.scrobble(trackData)
 
-                notificationHelper.sendNotification("LISTENING", "${track.artist} - ${track.name}",
-                    NotificationIds.listening
-                )
+                    ScrobbleDataSingleton.setScrobbleData(trackData)
 
-                //lfmUtils.nowPlaying(trackData)
-                val offset = min(trackData.duration / 2, 240000)//4 minutes of half of track's duration.
-
-                //there's probably a better way to do this.
-                //delay(offset.toLong())
-
-                //lfmUtils.scrobble(trackData)
-
-                val lib = lfmUtils.getAllArtists(1)
-                Log.i("test", lib.toString())
-
-                notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}",
-                    NotificationIds.scrobbled
-                )
+                    notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}",
+                        NotificationIds.scrobbled
+                    )
+                }
             }
         }
 

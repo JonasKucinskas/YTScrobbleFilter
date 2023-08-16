@@ -19,6 +19,7 @@ class NotificationHelper(private val context: Context) {
         const val nowPlayingError = 4
         const val scrobbleError = 5
         const val getArtistError = 6
+        const val shouldScrobble = 7
     }
 
 
