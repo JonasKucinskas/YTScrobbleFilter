@@ -96,7 +96,7 @@ class LFMUtils(context: Context) {
         }
     }
 
-    fun scrobbleData(track: Track, duration: Int): ScrobbleData{
+    fun getScrobbleData(track: Track, duration: Int): ScrobbleData{
 
         val data = ScrobbleData()
 

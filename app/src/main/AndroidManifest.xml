@@ -44,12 +44,13 @@
 
         <receiver
             android:name=".MediaManager$NotificationBroadcastReceiver"
-            android:exported="true">
+            android:enabled="true"
+            android:exported="false">
+
             <intent-filter>
-                <action android:name="ACTION_NOTIFICATION_CLICK" />
+                <action android:name="SCROBBLE_NEW_ARTIST"/>
             </intent-filter>
         </receiver>
-
 
     </application>
 </manifest>

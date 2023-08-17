@@ -14,6 +14,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.scrobbleNewArtist
 import com.example.ytscrobblefilter.data.room.ArtistDatabase
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +32,18 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
     var lfmUtils = LFMUtils(context)
     val coroutineScope = CoroutineScope(Dispatchers.IO)
 
+    object ScrobbleDataSingleton {
+        private val scrobbleData = MutableLiveData<ScrobbleData>()
+
+        fun setScrobbleData(data: ScrobbleData) {
+            scrobbleData.postValue(data)
+        }
+
+        fun getScrobbleData(): LiveData<ScrobbleData> {
+            return scrobbleData
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
         controllers ?: return
@@ -47,11 +60,12 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
         @Synchronized
         override fun onMetadataChanged(metadata: MediaMetadata?){
             metadata ?: return
+            coroutineScope.cancel()//if video changed, cancel previous operations.
 
             val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)
             val duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION).toInt()
 
-            //this somewhat fixes multiple calls, however user cant scrobble same track 2 times in a row.
+            //this fixes multiple calls, however user cant scrobble same track 2 times in a row.
             if (title.isEmpty() || title == lastVideoTitle){
                 return
             }
@@ -64,30 +78,34 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
 
                 val track = lfmUtils.trackSearch(title)
 
-                if (track == null){
-                    Log.i("trackSearch", "Not in last fm database.")
+                if (track != null){
 
-                    //todo buttons on notification
-                    notificationHelper.sendNotification("Should scrobble?", "Scrobble this artist from now on?",
-                        NotificationIds.shouldScrobble
-                    )
+                    val scrobbleData = lfmUtils.getScrobbleData(track, duration)
+                    ScrobbleDataSingleton.setScrobbleData(scrobbleData)
+
+                    if(db.artistDao().contains(scrobbleData.artist)){//scrobble
+
+                        //lfmUtils.nowPlaying(trackData)
+
+                        //there's probably a better way to do this.
+                        //delay(min(scrobbleData.duration / 2, 240000).toLong())//4 minutes of half of track's duration.
+
+                        //lfmUtils.scrobble(trackData)
+
+                        notificationHelper.sendNotification("Track scrobbled", "${track.artist} - ${track.name}",
+                            NotificationIds.scrobbled
+                        )
+                    }
+                    else{
+                        notificationHelper.sendNotification("Should scrobble?", "Scrobble ${scrobbleData.artist} artist from now on?",
+                            NotificationIds.shouldScrobble
+                        )
+                        //response is handled in NotificationBroadcastReceiver class.
+                    }
                 }
-                else if(db.artistDao().contains(track.artist)){
-                    val trackData = lfmUtils.scrobbleData(track, duration)
-
-                    //lfmUtils.nowPlaying(trackData)
-                    val offset = min(trackData.duration / 2, 240000)//4 minutes of half of track's duration.
-
-                    //there's probably a better way to do this.
-                    //delay(offset.toLong())
-
-                    //lfmUtils.scrobble(trackData)
-
-                    ScrobbleDataSingleton.setScrobbleData(trackData)
-
-                    notificationHelper.sendNotification("SCROBBLED", "${track.artist} - ${track.name}",
-                        NotificationIds.scrobbled
-                    )
+                else{
+                    Log.i("trackSearch", "Not in last.fm database.")
+                    //todo let user create custom metadata and scrobble.
                 }
             }
         }
@@ -142,25 +160,26 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
         return null
     }
 
-    object ScrobbleDataSingleton {
-        private val scrobbleData = MutableLiveData<ScrobbleData>()
 
-        fun setScrobbleData(data: ScrobbleData) {
-            scrobbleData.postValue(data)
-        }
 
-        fun getScrobbleData(): LiveData<ScrobbleData> {
-            return scrobbleData
-        }
-    }
-
-    class NotificationBroadcastReceiver : BroadcastReceiver() {
+    //Notification action button OnClick receiver.
+    inner class NotificationBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == "ACTION_NOTIFICATION_CLICK") {
-                // Execute your code here when the notification is clicked
-                // This code will run in the background
+
+            if (intent.action == scrobbleNewArtist) {
+                val scrobbleData = ScrobbleDataSingleton.getScrobbleData().value ?: return
+
+                val sleepTime = min(scrobbleData.duration / 2, 240000).toLong()
+
+                coroutineScope.launch {
+                    //lfmUtils.nowPlaying(scrobbleData)
+                    //delay(sleepTime)
+                    //lfmUtils.scrobble(scrobbleData)
+                }
+                notificationHelper.sendNotification("Track scrobbled.", "${scrobbleData.artist} - ${scrobbleData.track}",
+                    NotificationIds.scrobbled
+                )
             }
         }
     }
-
 }
