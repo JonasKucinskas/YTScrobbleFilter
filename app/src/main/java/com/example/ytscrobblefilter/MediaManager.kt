@@ -14,7 +14,6 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.scrobbleNewArtist
 import com.example.ytscrobblefilter.data.room.ArtistDatabase
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
@@ -60,7 +59,7 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
         @Synchronized
         override fun onMetadataChanged(metadata: MediaMetadata?){
             metadata ?: return
-            coroutineScope.cancel()//if video changed, cancel previous operations.
+            //coroutineScope.cancel()//if video changed, cancel previous operations.
 
             val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)
             val duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION).toInt()
@@ -69,7 +68,7 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
             if (title.isEmpty() || title == lastVideoTitle){
                 return
             }
-            else lastVideoTitle = title
+            lastVideoTitle = title
 
             Log.i("MetaData", "changed to $title")
             val db = ArtistDatabase.getInstance(context)
@@ -160,18 +159,17 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
         return null
     }
 
-
-
     //Notification action button OnClick receiver.
-    inner class NotificationBroadcastReceiver : BroadcastReceiver() {
+    class NotificationBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            val notificationHelper = NotificationHelper(context)
 
-            if (intent.action == scrobbleNewArtist) {
+            if (intent.action == "SCROBBLE_NEW_ARTIST") {
                 val scrobbleData = ScrobbleDataSingleton.getScrobbleData().value ?: return
 
                 val sleepTime = min(scrobbleData.duration / 2, 240000).toLong()
 
-                coroutineScope.launch {
+                CoroutineScope(Dispatchers.IO).launch {
                     //lfmUtils.nowPlaying(scrobbleData)
                     //delay(sleepTime)
                     //lfmUtils.scrobble(scrobbleData)
