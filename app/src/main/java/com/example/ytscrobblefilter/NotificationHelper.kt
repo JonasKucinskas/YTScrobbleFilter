@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 
+
 class NotificationHelper(private val context: Context) {
 
 
@@ -22,24 +23,33 @@ class NotificationHelper(private val context: Context) {
         const val shouldScrobble = 7
     }
 
-
     init{
         val channel = NotificationChannel("my_channel_id", "My Channel", NotificationManager.IMPORTANCE_DEFAULT)
         notificationManager.createNotificationChannel(channel)
     }
 
     fun sendNotification(title: String, text: String, id: Int){
-
+/*
         val intent = Intent(context, ScrobbleEditActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+*/
+        val intent = Intent(context, MediaManager.NotificationBroadcastReceiver::class.java)
+        intent.action = "ACTION_NOTIFICATION_CLICK" // Custom action string for your BroadcastReceiver
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            id,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val builder = NotificationCompat.Builder(context, "my_channel_id")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(text)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 

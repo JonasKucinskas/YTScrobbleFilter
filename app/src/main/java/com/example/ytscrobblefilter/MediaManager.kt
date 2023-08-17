@@ -1,6 +1,8 @@
 package com.example.ytscrobblefilter
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaController.Callback
@@ -151,4 +153,14 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
             return scrobbleData
         }
     }
+
+    class NotificationBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == "ACTION_NOTIFICATION_CLICK") {
+                // Execute your code here when the notification is clicked
+                // This code will run in the background
+            }
+        }
+    }
+
 }

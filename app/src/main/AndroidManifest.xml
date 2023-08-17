@@ -41,6 +41,15 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
-    </application>
 
+        <receiver
+            android:name=".MediaManager$NotificationBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="ACTION_NOTIFICATION_CLICK" />
+            </intent-filter>
+        </receiver>
+
+
+    </application>
 </manifest>
