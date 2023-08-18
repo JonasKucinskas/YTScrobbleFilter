@@ -7,6 +7,8 @@ import android.app.PendingIntent.getBroadcast
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
+import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.blacklistNewArtist
+import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.editNewArtist
 import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.scrobbleNewArtist
 import com.example.ytscrobblefilter.NotificationHelper.NotificationIds.shouldScrobble
 
@@ -24,10 +26,14 @@ class NotificationHelper(private val context: Context) {
         const val scrobbleError = 5
         const val getArtistError = 6
         const val shouldScrobble = 7
+        const val artistBlacklisted = 8
+        const val artistEdited = 9
     }
 
     object IntentActionNames {
         const val scrobbleNewArtist = "SCROBBLE_NEW_ARTIST"
+        const val blacklistNewArtist = "BLACKLIST_NEW_ARTIST"
+        const val editNewArtist = "EDIT_NEW_ARTIST"
     }
 
     init{
@@ -47,7 +53,6 @@ class NotificationHelper(private val context: Context) {
 
         if (id == shouldScrobble){
             val intent = Intent(context, MediaManager.NotificationBroadcastReceiver::class.java)
-            intent.action = scrobbleNewArtist
 
             val pendingIntent = PendingIntent.getActivity(
                 context,
@@ -56,13 +61,30 @@ class NotificationHelper(private val context: Context) {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
+            intent.action = scrobbleNewArtist
+
             builder.setContentIntent(pendingIntent)
-                .addAction(R.mipmap.ic_launcher, "Yes", getBroadcast(//Add clickable button
+                .addAction(R.mipmap.ic_launcher, "Scrobble", getBroadcast(//Add clickable button
                 context,
                 id,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            ))
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+
+            intent.action = blacklistNewArtist
+
+            builder.setContentIntent(pendingIntent).addAction(R.mipmap.ic_launcher, "Blacklist", getBroadcast(//Add clickable button
+                    context,
+                    id,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+
+            intent.action = editNewArtist
+
+            builder.setContentIntent(pendingIntent).addAction(R.mipmap.ic_launcher, "Edit", getBroadcast(//Add clickable button
+                    context,
+                    id,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE))
         }
 
         notificationManager.notify(id, builder.build())

@@ -14,6 +14,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.blacklistNewArtist
+import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.editNewArtist
+import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.scrobbleNewArtist
 import com.example.ytscrobblefilter.data.room.ArtistDatabase
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
@@ -164,8 +167,9 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
         override fun onReceive(context: Context, intent: Intent) {
             val notificationHelper = NotificationHelper(context)
 
-            if (intent.action == "SCROBBLE_NEW_ARTIST") {
-                val scrobbleData = ScrobbleDataSingleton.getScrobbleData().value ?: return
+            val scrobbleData = ScrobbleDataSingleton.getScrobbleData().value ?: return
+
+            if (intent.action == scrobbleNewArtist) {
 
                 val sleepTime = min(scrobbleData.duration / 2, 240000).toLong()
 
@@ -176,6 +180,19 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
                 }
                 notificationHelper.sendNotification("Track scrobbled.", "${scrobbleData.artist} - ${scrobbleData.track}",
                     NotificationIds.scrobbled
+                )
+            }
+            else if (intent.action == blacklistNewArtist){
+                //add artist to blacklist
+
+                notificationHelper.sendNotification("Artist blacklisted.", scrobbleData.artist,
+                    NotificationIds.artistBlacklisted
+                )
+            }
+            else if (intent.action == editNewArtist){
+                //edit new artist
+                notificationHelper.sendNotification("Artist edited.", scrobbleData.artist,
+                    NotificationIds.artistEdited
                 )
             }
         }
