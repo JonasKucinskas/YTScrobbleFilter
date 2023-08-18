@@ -3,6 +3,7 @@ package com.example.ytscrobblefilter
 import android.content.Context
 import android.util.Log
 import com.example.ytscrobblefilter.NotificationHelper.NotificationIds
+import de.umass.lastfm.Artist
 import de.umass.lastfm.Authenticator
 import de.umass.lastfm.Period
 import de.umass.lastfm.Session
@@ -56,7 +57,7 @@ class LFMUtils(context: Context) {
         return response!!.elementAt(0)
     }
 
-    suspend fun getAllArtists(artistCount: Int): Collection<de.umass.lastfm.Artist>? {
+    suspend fun getArtists(artistCount: Int): Collection<Artist>? {
         return withContext(Dispatchers.IO) {
             try{
                 User.getTopArtists("Baradac", Period.OVERALL, apikey, artistCount)
@@ -96,6 +97,21 @@ class LFMUtils(context: Context) {
         }
     }
 
+    suspend fun artistSearch(name: String) : Artist?{
+
+        return withContext(Dispatchers.IO) {
+
+            try{
+                Artist.getInfo(name, apikey)
+            }
+            catch (e: Exception){
+                Log.e("artistSearch()", e.toString())
+                notificationHelper.sendNotification("Artist search error.", "Failed search for artist", NotificationIds.getArtistError)
+                null
+            }
+        }
+    }
+
     fun getScrobbleData(track: Track, duration: Int): ScrobbleData{
 
         val data = ScrobbleData()
@@ -107,4 +123,6 @@ class LFMUtils(context: Context) {
 
         return data
     }
+
+
 }

@@ -26,8 +26,8 @@ class NotificationHelper(private val context: Context) {
         const val scrobbleError = 5
         const val getArtistError = 6
         const val shouldScrobble = 7
-        const val artistBlacklisted = 8
-        const val artistEdited = 9
+        const val artistEdited = 8
+
     }
 
     object IntentActionNames {
@@ -73,18 +73,18 @@ class NotificationHelper(private val context: Context) {
             intent.action = blacklistNewArtist
 
             builder.setContentIntent(pendingIntent).addAction(R.mipmap.ic_launcher, "Blacklist", getBroadcast(//Add clickable button
-                    context,
-                    id,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+                context,
+                id,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
 
             intent.action = editNewArtist
 
             builder.setContentIntent(pendingIntent).addAction(R.mipmap.ic_launcher, "Edit", getBroadcast(//Add clickable button
-                    context,
-                    id,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE))
+                context,
+                id,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
         }
 
         notificationManager.notify(id, builder.build())

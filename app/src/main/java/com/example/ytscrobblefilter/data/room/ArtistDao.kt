@@ -14,4 +14,10 @@ interface ArtistDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM Artist WHERE name = :name LIMIT 1)")
     fun contains(name: String): Boolean
+
+    @Query("DELETE FROM Artist")
+    fun nukeTable()
+
+    @Query("SELECT * FROM Artist WHERE name = :name")
+    fun getArtist(name: String): Artist?
 }

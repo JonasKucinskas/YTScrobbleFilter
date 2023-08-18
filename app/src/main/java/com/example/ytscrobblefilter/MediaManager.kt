@@ -17,7 +17,9 @@ import androidx.lifecycle.MutableLiveData
 import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.blacklistNewArtist
 import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.editNewArtist
 import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.scrobbleNewArtist
+import com.example.ytscrobblefilter.data.room.Artist
 import com.example.ytscrobblefilter.data.room.ArtistDatabase
+import de.umass.lastfm.ImageSize
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,8 +33,9 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
     val notificationHelper = NotificationHelper(context)
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
-    var lfmUtils = LFMUtils(context)
+    val lfmUtils = LFMUtils(context)
     val coroutineScope = CoroutineScope(Dispatchers.IO)
+    val artistDatabase = ArtistDatabase.getInstance(context)
 
     object ScrobbleDataSingleton {
         private val scrobbleData = MutableLiveData<ScrobbleData>()
@@ -58,6 +61,8 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
 
     inner class ControllerCallback: Callback(){
 
+
+
         //this is getting called multiple times for one metadata change, no idea why.
         @Synchronized
         override fun onMetadataChanged(metadata: MediaMetadata?){
@@ -74,7 +79,6 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
             lastVideoTitle = title
 
             Log.i("MetaData", "changed to $title")
-            val db = ArtistDatabase.getInstance(context)
 
             coroutineScope.launch {
 
@@ -85,7 +89,9 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
                     val scrobbleData = lfmUtils.getScrobbleData(track, duration)
                     ScrobbleDataSingleton.setScrobbleData(scrobbleData)
 
-                    if(db.artistDao().contains(scrobbleData.artist)){//scrobble
+                    val artistInDatabase = artistDatabase.artistDao().getArtist(scrobbleData.artist)
+
+                    if(artistInDatabase != null && !artistInDatabase.blacklisted){//scrobble
 
                         //lfmUtils.nowPlaying(trackData)
 
@@ -98,7 +104,7 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
                             NotificationIds.scrobbled
                         )
                     }
-                    else{
+                    else if (artistInDatabase == null){
                         notificationHelper.sendNotification("Should scrobble?", "Scrobble ${scrobbleData.artist} artist from now on?",
                             NotificationIds.shouldScrobble
                         )
@@ -164,8 +170,15 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
 
     //Notification action button OnClick receiver.
     class NotificationBroadcastReceiver : BroadcastReceiver() {
+/*
+        val notificationHelper = NotificationHelper(context)
+*/
         override fun onReceive(context: Context, intent: Intent) {
+            //have to do this terribleness on every call :|
+            val lfmUtils = LFMUtils(context)
+            val db = ArtistDatabase.getInstance(context)
             val notificationHelper = NotificationHelper(context)
+            //
 
             val scrobbleData = ScrobbleDataSingleton.getScrobbleData().value ?: return
 
@@ -174,23 +187,43 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
                 val sleepTime = min(scrobbleData.duration / 2, 240000).toLong()
 
                 CoroutineScope(Dispatchers.IO).launch {
+                    //need to do this in order to fetch all Artist metadata in correct object.
+                    val artist = lfmUtils.artistSearch(scrobbleData.artist)
                     //lfmUtils.nowPlaying(scrobbleData)
                     //delay(sleepTime)
                     //lfmUtils.scrobble(scrobbleData)
+
+                    //artist cant be null here:
+                    val roomArtist = Artist(artist!!)
+
+                    db.artistDao().insert(roomArtist)
+                    Log.i("Room db", "Inserted artist: ${roomArtist.name}")
                 }
+
                 notificationHelper.sendNotification("Track scrobbled.", "${scrobbleData.artist} - ${scrobbleData.track}",
                     NotificationIds.scrobbled
                 )
+
+
             }
             else if (intent.action == blacklistNewArtist){
                 //add artist to blacklist
 
-                notificationHelper.sendNotification("Artist blacklisted.", scrobbleData.artist,
-                    NotificationIds.artistBlacklisted
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+
+                    val artist = lfmUtils.artistSearch(scrobbleData.artist)
+
+                    //artist cant be null here.
+                    val roomArtist = Artist(artist!!)
+                    roomArtist.blacklisted = true
+
+                    db.artistDao().insert(roomArtist)
+                    Log.i("Room Database", "Added and blacklisted artist: ${roomArtist.name}")
+                }
             }
             else if (intent.action == editNewArtist){
                 //edit new artist
+
                 notificationHelper.sendNotification("Artist edited.", scrobbleData.artist,
                     NotificationIds.artistEdited
                 )

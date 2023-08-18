@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
                 val user = User.getInfo("Baradac", lfmUtils.apikey)
 
-                val artists = lfmUtils.getAllArtists(user.artistCount)
+                val artists = lfmUtils.getArtists(user.artistCount)
                 if (artists.isNullOrEmpty())
                     return@launch
 
@@ -64,9 +64,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 db.artistDao().insertAll(roomArtists)
-                button.text = "Artists imported!"
             }
-
+            button.text = "Artists imported!"
         }
 
         MediaManager.ScrobbleDataSingleton.getScrobbleData().observe(this) { scrobbleData: ScrobbleData ->
