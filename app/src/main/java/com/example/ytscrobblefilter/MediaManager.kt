@@ -12,6 +12,7 @@ import android.os.Build
 import com.example.ytscrobblefilter.NotificationHelper.NotificationIds
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.blacklistNewArtist
@@ -19,7 +20,6 @@ import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.editNew
 import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.scrobbleNewArtist
 import com.example.ytscrobblefilter.data.room.Artist
 import com.example.ytscrobblefilter.data.room.ArtistDatabase
-import de.umass.lastfm.ImageSize
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +28,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Math.min
 
-class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
+class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
 
     val notificationHelper = NotificationHelper(context)
     var ytController: MediaController? = null
@@ -105,7 +105,7 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
                         )
                     }
                     else if (artistInDatabase == null){
-                        notificationHelper.sendNotification("Should scrobble?", "Scrobble ${scrobbleData.artist} artist from now on?",
+                        notificationHelper.sendNotification("Scrobble this artist?", "Scrobble ${scrobbleData.artist} from now on?",
                             NotificationIds.shouldScrobble
                         )
                         //response is handled in NotificationBroadcastReceiver class.
@@ -170,9 +170,7 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
 
     //Notification action button OnClick receiver.
     class NotificationBroadcastReceiver : BroadcastReceiver() {
-/*
-        val notificationHelper = NotificationHelper(context)
-*/
+
         override fun onReceive(context: Context, intent: Intent) {
             //have to do this terribleness on every call :|
             val lfmUtils = LFMUtils(context)
@@ -203,8 +201,6 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
                 notificationHelper.sendNotification("Track scrobbled.", "${scrobbleData.artist} - ${scrobbleData.track}",
                     NotificationIds.scrobbled
                 )
-
-
             }
             else if (intent.action == blacklistNewArtist){
                 //add artist to blacklist
@@ -217,17 +213,13 @@ class MediaManager(val context: Context): MediaSessionManager.OnActiveSessionsCh
                     val roomArtist = Artist(artist!!)
                     roomArtist.blacklisted = true
 
-                    db.artistDao().insert(roomArtist)
+                    //db.artistDao().insert(roomArtist)
                     Log.i("Room Database", "Added and blacklisted artist: ${roomArtist.name}")
                 }
             }
-            else if (intent.action == editNewArtist){
-                //edit new artist
 
-                notificationHelper.sendNotification("Artist edited.", scrobbleData.artist,
-                    NotificationIds.artistEdited
-                )
-            }
+            //cancel notification after action button is clicked.
+            notificationHelper.notificationManager.cancel(NotificationIds.shouldScrobble)
         }
     }
 }
