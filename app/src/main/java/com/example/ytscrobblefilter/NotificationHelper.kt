@@ -28,7 +28,6 @@ class NotificationHelper(private val context: Context) {
         const val getArtistError = 6
         const val shouldScrobble = 7
         const val artistEdited = 8
-
     }
 
     object IntentActionNames {
@@ -68,7 +67,7 @@ class NotificationHelper(private val context: Context) {
 
             val scrobbleIntent = Intent(context, MediaManager.NotificationBroadcastReceiver::class.java)
                 .setAction(scrobbleNewArtist) // Set the action
-            val scrobblePendingIntent = PendingIntent.getBroadcast(
+            val scrobblePendingIntent = getBroadcast(
                 context,
                 shouldScrobble,
                 scrobbleIntent,

@@ -1,8 +1,8 @@
 package com.example.ytscrobblefilter.data.room
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import de.umass.lastfm.Artist
-import de.umass.lastfm.ImageSize
+//import de.umass.lastfm.Artist
+//import de.umass.lastfm.ImageSize
 
 @Entity(tableName = "Artist")
 class Artist {
@@ -26,6 +26,6 @@ class Artist {
         this.mbid = lastFMArtist.mbid
         this.playcount = lastFMArtist.playcount
         this.url = lastFMArtist.url
-        this.imageUrl = lastFMArtist.getImageURL(ImageSize.MEDIUM)
+        //this.imageUrl = lastFMArtist.getImageURL(ImageSize.MEDIUM)
     }
 }

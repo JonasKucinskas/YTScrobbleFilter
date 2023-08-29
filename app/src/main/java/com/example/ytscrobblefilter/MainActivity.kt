@@ -35,8 +35,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Log.e("main activity", "opened")
-
         checkPermissions()
 
         val textView = findViewById<TextView>(R.id.text)
@@ -66,6 +64,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 db.artistDao().insertAll(roomArtists)
+                Log.i("Get all atrists", "finished")
             }
             button.text = "Artists imported!"
         }

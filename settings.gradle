@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "YTScrobbleFilter"
 include ':app'
+include ':lastfm'

@@ -85,11 +85,10 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 val track = lfmUtils.trackSearch(title)
 
                 if (track != null){
-
                     val scrobbleData = lfmUtils.getScrobbleData(track, duration)
                     ScrobbleDataSingleton.setScrobbleData(scrobbleData)
-
                     val artistInDatabase = artistDatabase.artistDao().getArtist(scrobbleData.artist)
+
 
                     if(artistInDatabase != null && !artistInDatabase.blacklisted){//scrobble
 
@@ -186,7 +185,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                 CoroutineScope(Dispatchers.IO).launch {
                     //need to do this in order to fetch all Artist metadata in correct object.
-                    val artist = lfmUtils.artistSearch(scrobbleData.artist)
+                    val artist = lfmUtils.artistGetInfo(scrobbleData.artist)
                     //lfmUtils.nowPlaying(scrobbleData)
                     //delay(sleepTime)
                     //lfmUtils.scrobble(scrobbleData)
@@ -207,7 +206,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                 CoroutineScope(Dispatchers.IO).launch {
 
-                    val artist = lfmUtils.artistSearch(scrobbleData.artist)
+                    val artist = lfmUtils.artistGetInfo(scrobbleData.artist)
 
                     //artist cant be null here.
                     val roomArtist = Artist(artist!!)

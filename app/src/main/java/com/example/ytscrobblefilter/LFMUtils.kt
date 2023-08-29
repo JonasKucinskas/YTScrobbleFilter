@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class LFMUtils(context: Context) {
 
@@ -27,7 +28,9 @@ class LFMUtils(context: Context) {
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
+
             session = Authenticator.getMobileSession(
+                "https://ws.audioscrobbler.com/2.0/",
                 username,
                 password,
                 apikey,
@@ -97,12 +100,12 @@ class LFMUtils(context: Context) {
         }
     }
 
-    suspend fun artistSearch(name: String) : Artist?{
+    suspend fun artistGetInfo(name: String) : Artist?{
 
         return withContext(Dispatchers.IO) {
 
             try{
-                Artist.getInfo(name, apikey)
+                Artist.getInfo(name, "Baradac", apikey)
             }
             catch (e: Exception){
                 Log.e("artistSearch()", e.toString())
