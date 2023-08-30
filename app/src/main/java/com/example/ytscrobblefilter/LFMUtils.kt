@@ -13,8 +13,10 @@ import de.umass.lastfm.User
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.Math.min
 import java.util.Locale
 
 class LFMUtils(context: Context) {
@@ -88,12 +90,17 @@ class LFMUtils(context: Context) {
         }
     }
 
-    suspend fun scrobble(trackData: ScrobbleData){
+    suspend fun scrobble(scrobbleData: ScrobbleData){
 
         withContext(Dispatchers.IO) {
 
             try{
-                Track.scrobble(trackData.artist, trackData.track, trackData.timestamp, session)
+                delay(min(scrobbleData.duration / 2, 240000).toLong())//4 minutes of half of track's duration.
+                Track.scrobble(scrobbleData.artist, scrobbleData.track, scrobbleData.timestamp, session)
+
+                notificationHelper.sendNotification("Track scrobbled", "${scrobbleData.artist} - ${scrobbleData.track}",
+                    NotificationIds.scrobbled
+                )
             }
             catch (e: Exception){
                 Log.e("Track.Scrobble()", e.toString())
