@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.ytscrobblefilter.NotificationHelper.NotificationIds
 import de.umass.lastfm.Artist
 import de.umass.lastfm.Authenticator
+import de.umass.lastfm.PaginatedResult
 import de.umass.lastfm.Period
 import de.umass.lastfm.Session
 import de.umass.lastfm.Track
@@ -18,11 +19,11 @@ import java.util.Locale
 
 class LFMUtils(context: Context) {
 
-    private lateinit var session: Session
+    public lateinit var session: Session
 
     private val username = BuildConfig.LFMusrname
     private val password = BuildConfig.LFMpasswd
-    val apikey = BuildConfig.LFMapikey
+    private val apikey = BuildConfig.LFMapikey
     private val secret = BuildConfig.LFMSecret
     private val notificationHelper = NotificationHelper(context)
 
@@ -60,10 +61,11 @@ class LFMUtils(context: Context) {
         return response!!.elementAt(0)
     }
 
-    suspend fun getArtists(artistCount: Int): Collection<Artist>? {
+    suspend fun getArtists(artistCount: Int): PaginatedResult<Artist>? {
+
         return withContext(Dispatchers.IO) {
             try{
-                User.getTopArtists("Baradac", Period.OVERALL, apikey, artistCount)
+                User.getTopArtists("Baradac", Period.OVERALL, artistCount, session)
             }
             catch (e: Exception){
                 Log.e("User.getTopArtists()", e.toString())
@@ -73,11 +75,11 @@ class LFMUtils(context: Context) {
         }
     }
 
-    suspend fun nowPlaying(trackData: ScrobbleData){
+    suspend fun nowPlaying(scrobbleData: ScrobbleData){
 
         withContext(Dispatchers.IO) {
             try{
-                Track.updateNowPlaying(trackData, session)
+                Track.updateNowPlaying(scrobbleData, session)
             }
             catch (e: Exception){
                 Log.e("Track.updateNowPlaying()", e.toString())

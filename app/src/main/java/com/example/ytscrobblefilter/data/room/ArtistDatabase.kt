@@ -8,6 +8,8 @@ import androidx.room.RoomDatabase
 @Database(entities = [Artist::class], version = 1)
 abstract class ArtistDatabase : RoomDatabase() {
 
+    //this db contains blacklisted artists.
+
     abstract fun artistDao(): ArtistDao
     // Singleton instance
     companion object {

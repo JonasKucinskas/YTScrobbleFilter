@@ -60,9 +60,6 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
 
     inner class ControllerCallback: Callback(){
-
-
-
         //this is getting called multiple times for one metadata change, no idea why.
         @Synchronized
         override fun onMetadataChanged(metadata: MediaMetadata?){
@@ -87,28 +84,33 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 if (track != null){
                     val scrobbleData = lfmUtils.getScrobbleData(track, duration)
                     ScrobbleDataSingleton.setScrobbleData(scrobbleData)
-                    val artistInDatabase = artistDatabase.artistDao().getArtist(scrobbleData.artist)
+                    val artistInDatabase = artistDatabase.artistDao().contains(scrobbleData.artist)
 
+                    val artist = lfmUtils.artistGetInfo(scrobbleData.artist)
 
-                    if(artistInDatabase != null && !artistInDatabase.blacklisted){//scrobble
+                    //artist not blacklisted
+                    if(!artistInDatabase){
 
-                        //lfmUtils.nowPlaying(trackData)
+                        if (artist!!.userPlaycount > 0){//artist has been scrobbled before, scrobble.
+                            lfmUtils.nowPlaying(scrobbleData)
 
-                        //there's probably a better way to do this.
-                        //delay(min(scrobbleData.duration / 2, 240000).toLong())//4 minutes of half of track's duration.
+                            //there's probably a better way to do this.
+                            //delay(min(scrobbleData.duration / 2, 240000).toLong())//4 minutes of half of track's duration.
 
-                        //lfmUtils.scrobble(trackData)
+                            //lfmUtils.scrobble(scrobbleData)
 
-                        notificationHelper.sendNotification("Track scrobbled", "${track.artist} - ${track.name}",
-                            NotificationIds.scrobbled
-                        )
+                            notificationHelper.sendNotification("Track scrobbled", "${track.artist} - ${track.name}",
+                                NotificationIds.scrobbled
+                            )
+                        }
+                        else{//artist not scrobbled before, ask if should scrobble.
+                            //response is handled in NotificationBroadcastReceiver class.
+                            notificationHelper.sendNotification("Scrobble this artist?", "Scrobble ${scrobbleData.artist} from now on?",
+                                NotificationIds.shouldScrobble
+                            )
+                        }
                     }
-                    else if (artistInDatabase == null){
-                        notificationHelper.sendNotification("Scrobble this artist?", "Scrobble ${scrobbleData.artist} from now on?",
-                            NotificationIds.shouldScrobble
-                        )
-                        //response is handled in NotificationBroadcastReceiver class.
-                    }
+
                 }
                 else{
                     Log.i("trackSearch", "Not in last.fm database.")
@@ -158,6 +160,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
         for (controller in controllers){
             if (isYoutubeController(controller)){
+                Log.e("Media controller", "Youtube media controller found.")
                 return controller
             }
         }
@@ -173,7 +176,6 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
         override fun onReceive(context: Context, intent: Intent) {
             //have to do this terribleness on every call :|
             val lfmUtils = LFMUtils(context)
-            val db = ArtistDatabase.getInstance(context)
             val notificationHelper = NotificationHelper(context)
             //
 
@@ -181,25 +183,19 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
             if (intent.action == scrobbleNewArtist) {
 
-                val sleepTime = min(scrobbleData.duration / 2, 240000).toLong()
-
                 CoroutineScope(Dispatchers.IO).launch {
                     //need to do this in order to fetch all Artist metadata in correct object.
-                    val artist = lfmUtils.artistGetInfo(scrobbleData.artist)
                     //lfmUtils.nowPlaying(scrobbleData)
-                    //delay(sleepTime)
+                    val delayTime = min(scrobbleData.duration / 2, 240000).toLong()
+                    //delay(delayTime)
                     //lfmUtils.scrobble(scrobbleData)
 
-                    //artist cant be null here:
-                    val roomArtist = Artist(artist!!)
-
-                    db.artistDao().insert(roomArtist)
-                    Log.i("Room db", "Inserted artist: ${roomArtist.name}")
+                    notificationHelper.sendNotification("Track scrobbled.", "${scrobbleData.artist} - ${scrobbleData.track}",
+                        NotificationIds.scrobbled
+                    )
                 }
 
-                notificationHelper.sendNotification("Track scrobbled.", "${scrobbleData.artist} - ${scrobbleData.track}",
-                    NotificationIds.scrobbled
-                )
+
             }
             else if (intent.action == blacklistNewArtist){
                 //add artist to blacklist
@@ -208,11 +204,11 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                     val artist = lfmUtils.artistGetInfo(scrobbleData.artist)
 
-                    //artist cant be null here.
+                    //artist won't be null here.
                     val roomArtist = Artist(artist!!)
-                    roomArtist.blacklisted = true
 
-                    //db.artistDao().insert(roomArtist)
+                    val db = ArtistDatabase.getInstance(context)
+                    db.artistDao().insert(roomArtist)
                     Log.i("Room Database", "Added and blacklisted artist: ${roomArtist.name}")
                 }
             }
