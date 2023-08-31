@@ -51,7 +51,7 @@ class NotificationHelper(private val context: Context) {
 
         if (id == shouldScrobble){
 
-            val scrobbleEditIntent = Intent(context, MainActivity::class.java)
+            val scrobbleEditIntent = Intent(context, ScrobbleEditActivity::class.java)
                 .apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }

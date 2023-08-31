@@ -17,11 +17,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.Math.min
-import java.util.Locale
 
 class LFMUtils(context: Context) {
 
-    public lateinit var session: Session
+    private var session: Session? = null
 
     private val username = BuildConfig.LFMusrname
     private val password = BuildConfig.LFMpasswd
@@ -90,12 +89,14 @@ class LFMUtils(context: Context) {
         }
     }
 
-    suspend fun scrobble(scrobbleData: ScrobbleData){
+    suspend fun scrobble(scrobbleData: ScrobbleData, withDelay: Boolean){
 
         withContext(Dispatchers.IO) {
 
             try{
-                delay(min(scrobbleData.duration / 2, 240000).toLong())//4 minutes of half of track's duration.
+                if (withDelay){
+                    delay(min(scrobbleData.duration / 2, 240000).toLong())//4 minutes of half of track's duration.
+                }
                 Track.scrobble(scrobbleData.artist, scrobbleData.track, scrobbleData.timestamp, session)
 
                 notificationHelper.sendNotification("Track scrobbled", "${scrobbleData.artist} - ${scrobbleData.track}",

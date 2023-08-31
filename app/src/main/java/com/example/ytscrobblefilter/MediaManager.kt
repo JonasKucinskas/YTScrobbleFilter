@@ -22,6 +22,7 @@ import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChangedListener {
@@ -30,11 +31,11 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     var ytController: MediaController? = null
     var lastVideoTitle: String? = null
     val lfmUtils = LFMUtils(context)
-    lateinit var coroutineScope: CoroutineScope
+    var coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     val artistDatabase = ArtistDatabase.getInstance(context)
 
     object ScrobbleDataSingleton {
-        private val scrobbleData = MutableLiveData<ScrobbleData>()
+        private var scrobbleData = MutableLiveData<ScrobbleData>()
 
         fun setScrobbleData(data: ScrobbleData) {
             scrobbleData.postValue(data)
@@ -42,6 +43,10 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
         fun getScrobbleData(): LiveData<ScrobbleData> {
             return scrobbleData
+        }
+
+        fun clearScrobbleData() {
+            scrobbleData = MutableLiveData<ScrobbleData>()
         }
     }
 
@@ -91,7 +96,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                         if (artist.userPlaycount > 0){//artist has been scrobbled before, scrobble.
                             lfmUtils.nowPlaying(scrobbleData)
-                            lfmUtils.scrobble(scrobbleData)
+                            lfmUtils.scrobble(scrobbleData, true)
                         }
                         else{//artist not scrobbled before, ask if should scrobble.
                             //response is handled in NotificationBroadcastReceiver class.
@@ -127,8 +132,10 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
             Log.i("Playback state change", stateName)
 
-            if (stateName == "Stopped"){
+            if (stateName == "Stopped" && coroutineScope.isActive){
                 coroutineScope.cancel()//cancel current scrobble and other calls.
+                ScrobbleDataSingleton.clearScrobbleData()
+                notificationHelper.notificationManager.cancel(NotificationIds.shouldScrobble)
                 Log.i("Coroutine scope", "Canceled")
             }
         }
@@ -175,7 +182,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                 CoroutineScope(Dispatchers.IO).launch {
                     lfmUtils.nowPlaying(scrobbleData)
-                    //lfmUtils.scrobble(scrobbleData)
+                    lfmUtils.scrobble(scrobbleData, true)
                 }
             }
             else if (intent.action == blacklistNewArtist){
@@ -190,7 +197,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                     val db = ArtistDatabase.getInstance(context)
                     db.artistDao().insert(roomArtist)
-                    Log.i("Room Database", "Added and blacklisted artist: ${roomArtist.name}")
+                    Log.i("Room Database", "Added blacklisted artist: ${roomArtist.name}")
                 }
             }
 
