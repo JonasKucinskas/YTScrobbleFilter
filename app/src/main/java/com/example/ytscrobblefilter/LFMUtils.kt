@@ -89,14 +89,15 @@ class LFMUtils(context: Context) {
         }
     }
 
-    suspend fun scrobble(scrobbleData: ScrobbleData, withDelay: Boolean){
+    suspend fun scrobble(scrobbleData: ScrobbleData){
 
         withContext(Dispatchers.IO) {
 
             try{
-                if (withDelay){
-                    delay(min(scrobbleData.duration / 2, 240000).toLong())//4 minutes of half of track's duration.
-                }
+                //time passed from data creation to scrobbling, relevant when user is editing metadata.
+                val timePassed = System.currentTimeMillis() / 1000 - scrobbleData.timestamp
+                delay(min(scrobbleData.duration / 2, 240000).toLong() - timePassed)//4 minutes of half of track's duration.
+
                 Track.scrobble(scrobbleData.artist, scrobbleData.track, scrobbleData.timestamp, session)
 
                 notificationHelper.sendNotification("Track scrobbled", "${scrobbleData.artist} - ${scrobbleData.track}",

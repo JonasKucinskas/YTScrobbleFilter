@@ -96,7 +96,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                         if (artist.userPlaycount > 0){//artist has been scrobbled before, scrobble.
                             lfmUtils.nowPlaying(scrobbleData)
-                            lfmUtils.scrobble(scrobbleData, true)
+                            lfmUtils.scrobble(scrobbleData)
                         }
                         else{//artist not scrobbled before, ask if should scrobble.
                             //response is handled in NotificationBroadcastReceiver class.
@@ -157,7 +157,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
         for (controller in controllers){
             if (isYoutubeController(controller)){
-                Log.e("Media controller", "Youtube media controller found.")
+                Log.i("Media controller", "Youtube media controller found.")
                 return controller
             }
         }
@@ -182,7 +182,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                 CoroutineScope(Dispatchers.IO).launch {
                     lfmUtils.nowPlaying(scrobbleData)
-                    lfmUtils.scrobble(scrobbleData, true)
+                    lfmUtils.scrobble(scrobbleData)
                 }
             }
             else if (intent.action == blacklistNewArtist){
