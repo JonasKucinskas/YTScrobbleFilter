@@ -5,6 +5,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
+import com.example.ytscrobblefilter.data.room.scrobbleDataCorrections.ScrobbleDataDatabase
+import com.example.ytscrobblefilter.data.room.scrobbleDataCorrections.ScrobbleDataRoom
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
@@ -27,19 +29,26 @@ class ScrobbleEditActivity : AppCompatActivity() {
 
         val scrobbleData: LiveData<ScrobbleData> = MediaManager.ScrobbleDataSingleton.getScrobbleData()
 
+
         scrobbleData.observe(this) { data: ScrobbleData ->
             artistTextView.text = data.artist
             titleTextView.text = data.track
+
         }
 
         saveButton.setOnClickListener{
 
-            scrobbleData.value?.artist = artistTextView.text.toString()
-            scrobbleData.value?.track = titleTextView.text.toString()
+            val newData = ScrobbleData(scrobbleData.value!!)
+            newData.artist = artistTextView.text.toString()
+            newData.track = titleTextView.text.toString()
+
+            val data = ScrobbleDataRoom(scrobbleData.value!!, newData)
 
             MediaManager.ScrobbleDataSingleton.setScrobbleData(scrobbleData.value!!)
+            val db = ScrobbleDataDatabase.getInstance(this)
 
             CoroutineScope(Dispatchers.IO).launch{
+                db.artistDao().insert(data)
                 lfmUtils.scrobble(scrobbleData.value!!)
             }
 

@@ -16,8 +16,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.blacklistNewArtist
 import com.example.ytscrobblefilter.NotificationHelper.IntentActionNames.scrobbleNewArtist
-import com.example.ytscrobblefilter.data.room.Artist
-import com.example.ytscrobblefilter.data.room.ArtistDatabase
+import com.example.ytscrobblefilter.data.room.Artist.Artist
+import com.example.ytscrobblefilter.data.room.Artist.ArtistDatabase
+import com.example.ytscrobblefilter.data.room.scrobbleDataCorrections.ScrobbleDataDatabase
 import de.umass.lastfm.scrobble.ScrobbleData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
     val lfmUtils = LFMUtils(context)
     var coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     val artistDatabase = ArtistDatabase.getInstance(context)
+    val scrobbleDataDataBase = ScrobbleDataDatabase.getInstance(context)
 
     object ScrobbleDataSingleton {
         private var scrobbleData = MutableLiveData<ScrobbleData>()
@@ -91,10 +93,19 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
                     val artist = lfmUtils.artistGetInfo(scrobbleData.artist) ?: return@launch
 
+
                     //artist not blacklisted
                     if(!artistInDatabase){
 
-                        if (artist.userPlaycount > 0){//artist has been scrobbled before, scrobble.
+                        val correctedData = scrobbleDataDataBase.artistDao().getNewScrobbleData(scrobbleData.artist, scrobbleData.track)
+
+                        if (artist.userPlaycount > 0 || correctedData != null){//artist has been scrobbled before, scrobble.
+
+                            if (correctedData != null){
+                                scrobbleData.artist = correctedData.newArtist
+                                scrobbleData.track = correctedData.newTrack
+                            }
+
                             lfmUtils.nowPlaying(scrobbleData)
                             lfmUtils.scrobble(scrobbleData)
                         }

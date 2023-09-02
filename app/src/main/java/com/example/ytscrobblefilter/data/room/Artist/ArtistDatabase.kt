@@ -1,4 +1,4 @@
-package com.example.ytscrobblefilter.data.room
+package com.example.ytscrobblefilter.data.room.Artist
 
 import android.content.Context
 import androidx.room.Database
@@ -25,7 +25,7 @@ abstract class ArtistDatabase : RoomDatabase() {
             return Room.databaseBuilder(
                 context.applicationContext,
                 ArtistDatabase::class.java,
-                "app_database"
+                "blacklistedArtists"
             )
                 .fallbackToDestructiveMigration()
                 .build()

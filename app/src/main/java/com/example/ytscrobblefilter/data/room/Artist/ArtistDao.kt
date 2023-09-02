@@ -1,4 +1,4 @@
-package com.example.ytscrobblefilter.data.room
+package com.example.ytscrobblefilter.data.room.Artist
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query

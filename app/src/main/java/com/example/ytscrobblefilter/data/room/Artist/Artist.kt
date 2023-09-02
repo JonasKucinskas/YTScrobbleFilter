@@ -1,4 +1,4 @@
-package com.example.ytscrobblefilter.data.room
+package com.example.ytscrobblefilter.data.room.Artist
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
