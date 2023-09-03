@@ -18,6 +18,9 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".LFMLoginActivity"
+            android:exported="false" />
+        <activity
             android:name=".ScrobbleEditActivity"
             android:exported="false"
             android:label="@string/title_activity_scrobble_edit"
@@ -46,13 +49,12 @@
             android:name=".MediaManager$NotificationBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
-
             <intent-filter>
-                <action android:name="SCROBBLE_NEW_ARTIST"/>
-                <action android:name="BLACKLIST_NEW_ARTIST"/>
-                <action android:name="EDIT_NEW_ARTIST"/>
+                <action android:name="SCROBBLE_NEW_ARTIST" />
+                <action android:name="BLACKLIST_NEW_ARTIST" />
+                <action android:name="EDIT_NEW_ARTIST" />
             </intent-filter>
         </receiver>
-
     </application>
+
 </manifest>

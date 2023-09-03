@@ -29,7 +29,7 @@ class ScrobbleEditActivity : AppCompatActivity() {
 
         val scrobbleData: LiveData<ScrobbleData> = MediaManager.ScrobbleDataSingleton.getScrobbleData()
 
-
+        scrobbleData.value
         scrobbleData.observe(this) { data: ScrobbleData ->
             artistTextView.text = data.artist
             titleTextView.text = data.track

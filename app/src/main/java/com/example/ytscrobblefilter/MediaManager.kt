@@ -87,16 +87,12 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                 val track = lfmUtils.trackSearch(title)
 
                 if (track != null){
-                    val scrobbleData = lfmUtils.getScrobbleData(track, duration)
-                    ScrobbleDataSingleton.setScrobbleData(scrobbleData)
-                    val artistInDatabase = artistDatabase.artistDao().contains(scrobbleData.artist)
-
-                    val artist = lfmUtils.artistGetInfo(scrobbleData.artist) ?: return@launch
-
+                    val artistInDatabase = artistDatabase.artistDao().contains(track.artist)
 
                     //artist not blacklisted
                     if(!artistInDatabase){
-
+                        val scrobbleData = lfmUtils.getScrobbleData(track, duration)
+                        val artist = lfmUtils.artistGetInfo(scrobbleData.artist) ?: return@launch
                         val correctedData = scrobbleDataDataBase.artistDao().getNewScrobbleData(scrobbleData.artist, scrobbleData.track)
 
                         if (artist.userPlaycount > 0 || correctedData != null){//artist has been scrobbled before, scrobble.
@@ -105,7 +101,7 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
                                 scrobbleData.artist = correctedData.newArtist
                                 scrobbleData.track = correctedData.newTrack
                             }
-
+                            ScrobbleDataSingleton.setScrobbleData(scrobbleData)
                             lfmUtils.nowPlaying(scrobbleData)
                             lfmUtils.scrobble(scrobbleData)
                         }
@@ -129,7 +125,10 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
             super.onPlaybackStateChanged(state)
             state ?: return
 
+            var currentState = "none"
+
             val stateName = when (state.state) {
+
                 PlaybackState.STATE_NONE -> "None"
                 PlaybackState.STATE_STOPPED -> "Stopped"
                 PlaybackState.STATE_PAUSED -> "Paused"
@@ -143,12 +142,13 @@ class MediaManager(context: Context): MediaSessionManager.OnActiveSessionsChange
 
             Log.i("Playback state change", stateName)
 
-            if (stateName == "Stopped" && coroutineScope.isActive){
+            if ((stateName == "Stopped" || stateName == "None") && coroutineScope.isActive){
                 coroutineScope.cancel()//cancel current scrobble and other calls.
                 ScrobbleDataSingleton.clearScrobbleData()
                 notificationHelper.notificationManager.cancel(NotificationIds.shouldScrobble)
                 Log.i("Coroutine scope", "Canceled")
             }
+            currentState = stateName
         }
 
         override fun onSessionDestroyed() {

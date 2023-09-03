@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         checkPermissions()
+        //lfmLogin()
 
         val textView = findViewById<TextView>(R.id.text)
 
@@ -36,6 +37,18 @@ class MainActivity : AppCompatActivity() {
                 textView.text = "not scrobbling"
             }
             textView.text = "${scrobbleData.artist} - ${scrobbleData.track}"
+        }
+    }
+
+    private fun lfmLogin(){
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+
+        val userEmail = sharedPreferences.getString("email", null)
+        val username = sharedPreferences.getString("username", null)
+
+        if (userEmail == null || username == null){
+            //val intent = Intent(this, LFMLoginActivity::class.java)
+            //startActivity(intent)
         }
     }
 

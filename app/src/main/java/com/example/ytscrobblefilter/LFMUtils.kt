@@ -106,7 +106,6 @@ class LFMUtils(context: Context) {
             }
             catch (e: Exception){
                 Log.e("Track.Scrobble()", e.toString())
-                notificationHelper.sendNotification("Scrobble error", "Failed to scrobble current track", NotificationIds.scrobbleError)
             }
         }
     }
